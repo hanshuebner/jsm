@@ -1,0 +1,1 @@
+print(require('./build/default/MIDI.node'));

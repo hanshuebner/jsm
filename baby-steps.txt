@@ -1,0 +1,89 @@
+Für den Anfang:  JSM-Babysteps
+==============================
+
+Ziele:
+
+1. Definition einer JavaScript MIDI-API
+
+   Sollte sowohl im Browser mit MIDI-Applet, mit Plugin oder
+   Standalone in node.js implementierbar sein.
+
+   Funktionen:
+
+ - Abfragen der MIDI-Systeminformationen:
+
+   var midiPortInfo = MIDIInfo()
+   =>
+   { inputs: [ 'port 1', 'port 2' ],
+     outputs: [ 'port 1', 'port 3' ] }
+
+
+ - Öffnen von MIDI-Ports für Input und Output:
+
+   var midiInput = MIDIInputPort(<name>)
+   var midiOutput = MIDIOutputPort(<name>)
+
+ - Senden von Daten:
+
+   midiOutput.send(data[, callback]);
+
+ - Empfangen von Daten:
+
+   midiInput.receive(callback)
+
+   und/oder
+
+   midiInput.onMessage
+   midiInput.onSysexMessage
+   midiInput.onCC
+   midiInput.onNote
+   midiInput.onClock
+
+2. Implementation der API in einem Standalone-node-Prozess
+
+ - MIDI-Interface über portmidi
+ - midithread.c als Beispiel für die Entkopplung vom MIDI-Processing
+   und dem Hauptthread.
+ - https://gist.github.com/763656 zeigt, wie man Nachrichten aus einem
+   anderen Thread an node schickt.
+
+3. Implementation eines BCR2000-Editors für DSI Tetra
+
+ - Konfiguration des BCR2000 mit geeigneten Presets (Synth parameters,
+   Step Sequencer etc.)
+ - Abfragen der aktuellen Parameter beim Start und bei Program Change,
+   Umwandeln in NRPN-Nachrichten an BCR so daß die aktuellen Werte
+   angezeigt werden.
+ - Lauschen auf Nachrichten vom BCR und vom Tetra, Aktualisieren des
+   internen Abbilds
+ - Abfrage von Funktionstasten vom BCR zum Wechsel des Presets
+   (Lock-Mode), Umschalten des Presets über MIDI inklusive Übertragung
+   der für den Preset relevanten Parameter.
+
+4. Implementation einer Web-basierten Tetra-GUI
+
+ - Anbindung des Web-Browsers über Websocket / socket.io
+ - Änderungen im UI werden in der Parameterdatenbank mitgeführt sowie
+   in NRPN-Messages umgewandelt und an BCR + Tetra geschickt
+ - BCR-Makroprogrammiermöglichkeit über UI
+
+
+--
+
+Node-Extension bauen mit node-waf und wscript
+
+--
+Implementierung:
+
+Extension erzeugt Objekt:
+
+{ function inputPorts(),          // liefert array mit input-port-namen zurueck
+  function outputPorts(),         // liefert array mit output-port-namen zurueck
+  function openInput(portName),
+  function openOutput(portname) sfgh
+  }
+
+inputPorts, outputPorts: Namen der Ports
+
+
+

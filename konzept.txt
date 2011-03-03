@@ -1,0 +1,61 @@
+JavaScript Music Engine
+-----------------------
+
+JME ist eine Plattform für die Entwicklung von elektronischen
+Musikinstrumenten, die ohne einen Hostrechner auskommen.  Die Hardware
+besteht aus einem FPGA, alle Echtzeitaufgaben werden durch durch
+Hardware-Komponenten erledigt.  Die Entwicklung von UI-, MIDI- und
+Netzwerkfunktionen erfolgt in JavaScript.
+
+Benefits:
+
+ - Programmierbarer Synthesizer, ohne daß ein Rechner für die
+   Live-Performance benötigt wird
+
+ - Cross-Entwicklung auf dem Studiorechner möglich
+
+ - Die Sounderzeugung kann durch FPGA-Rekonfiguration "beliebig"
+   verändert werden
+
+ - Verwendung von Hardware für zeitkritische Funktionen ermöglicht
+   korrektes Timing
+
+Prototyp:
+
+ - JavaScript Engine mit MIDI I/O und Script-Upload auf FPGA
+   (Nanoboard 3000)
+
+ - Einfacher Analog-Synth und Sequencer im FPGA
+
+ - Cross-Entwicklungsumgebung basierend auf Spidermonkey und PortMidi
+
+ - MIDI-Library für JavaScript orientiert sich an PortMidi, dadurch
+   steht auf der Hardware und dem Studiorechner die gleiche Umgebung
+   zur Verfügung
+
+ - Bedienung über MIDI-Controlsurface
+
+Später:
+
+ - UDP für OSC in Hardware
+
+ - Patches auf SD-Karte
+
+ - Eigenes UI
+
+ - USB-Host für USB-MIDI
+
+
+Issues, host-side:
+
+ - PortMIDI und Spidermonkey übersetzen.  Läuft mit VC++.
+
+ - UI?  GTK?  QT?  Dafür braucht es dann einen Spezialisten.  Auf dem
+   Host wird das UI der Hardware nachgebildet.
+
+Issues, device-side:
+
+ - Auswahl eines geeigneten Soft-Cores (LatticeMico32?  Cortex-M1)
+
+ - Implementation eines PortMidi-Subsets in der Target-Umgebung
+
