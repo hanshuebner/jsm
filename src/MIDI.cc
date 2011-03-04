@@ -1,9 +1,13 @@
 // -*- C++ -*-
 
 #include <iostream>
+#include <iomanip>
+#include <sstream>
+
 #include <v8.h>
 #include <node.h>
 #include <node_events.h>
+
 #include <portmidi.h>
 
 using namespace v8;
@@ -47,6 +51,7 @@ public:
   MIDIOutput(int portId);
   virtual ~MIDIOutput();
 
+  void send(const string& messageString);
   void close();
 
   // v8 interface
@@ -154,6 +159,31 @@ MIDIOutput::close()
   }
 }
 
+void
+MIDIOutput::send(const string& messageString)
+{
+  istringstream is(messageString);
+
+  unsigned int statusByte;
+  is >> hex >> statusByte;
+
+  if (statusByte == 0xf7) {
+    ThrowException(String::New("can't send sysex yet"));
+  }
+  unsigned int data1;
+  is >> hex >> data1;
+  unsigned int data2;
+  is >> hex >> data2;
+
+  PmError e = Pm_WriteShort(_pmMidiStream, 0, Pm_Message(statusByte, data1, data2));
+
+  if (e < 0) {
+    ThrowException(String::New("could not send MIDI message"));
+  }
+}
+
+// v8 interface
+
 Handle<Value>
 MIDIOutput::New(const Arguments& args)
 {
@@ -174,6 +204,11 @@ MIDIOutput::New(const Arguments& args)
 Handle<Value>
 MIDIOutput::send(const Arguments& args)
 {
+  HandleScope scope;
+  MIDIOutput* midiOutput = ObjectWrap::Unwrap<MIDIOutput>(args.This());
+  for (int i = 0; i < args.Length(); i++) {
+    midiOutput->send(string(*String::Utf8Value(args[i])));
+  }
   return Handle<Value>();
 }
 
