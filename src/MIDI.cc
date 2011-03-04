@@ -44,16 +44,23 @@ class MIDIOutput
   : public ObjectWrap
 {
 public:
-  static void Initialize(Handle<Object> target);
+  MIDIOutput(int portId);
+  virtual ~MIDIOutput();
 
-public:
-  MIDIOutput(int portId) { cout << "MIDIOutput(" << portId << ")" << endl; }
-  virtual ~MIDIOutput() { cout << "~MIDIOutput()" << endl; }
+  void close();
+
+  // v8 interface
+  static void Initialize(Handle<Object> target);
+  virtual void Dispose() { cout << "MIDIOutput::Dispose()" << endl; }
 
   static Handle<Value> New(const Arguments& args);
   static Handle<Value> send(const Arguments& args);
+  static Handle<Value> close(const Arguments& args);
 
   static Persistent<FunctionTemplate> _constructorTemplate;
+
+private:
+  PmStream* _pmMidiStream;
 };
 
 // //////////////////////////////////////////////////////////////////
@@ -109,9 +116,6 @@ MIDI::Initialize(Handle<Object> target) {
   MIDIOutput::Initialize(target);
   
   /*
-  NODE_SET_PROTOTYPE_METHOD(functionTemplate, "openOutput", openOutput);
-  */
-  /*
   _messageSymbol = NODE_PSYMBOL("message");
   _clockSymbol = NODE_PSYMBOL("clock");
   */
@@ -120,6 +124,35 @@ MIDI::Initialize(Handle<Object> target) {
 // //////////////////////////////////////////////////////////////////
 // MIDIOutput methods
 // //////////////////////////////////////////////////////////////////
+
+MIDIOutput::MIDIOutput(int portId)
+{
+  PmError e = Pm_OpenOutput(&_pmMidiStream, 
+                            portId, 
+                            0,                  // driver info
+                            1024,               // queue size
+                            0,                  // time proc
+                            0,                  // time info
+                            0);                 // latency
+
+  if (e < 0) {
+    ThrowException(String::New("could not open midi port"));
+  }
+}
+
+MIDIOutput::~MIDIOutput()
+{
+  close();
+}
+
+void
+MIDIOutput::close()
+{
+  if (_pmMidiStream) {
+    Pm_Close(_pmMidiStream);
+    _pmMidiStream = 0;
+  }
+}
 
 Handle<Value>
 MIDIOutput::New(const Arguments& args)
@@ -144,6 +177,15 @@ MIDIOutput::send(const Arguments& args)
   return Handle<Value>();
 }
 
+Handle<Value>
+MIDIOutput::close(const Arguments& args)
+{
+  HandleScope scope;
+  MIDIOutput* midiOutput = ObjectWrap::Unwrap<MIDIOutput>(args.This());
+  midiOutput->close();
+  return Handle<Value>();
+}
+
 Persistent<FunctionTemplate> MIDIOutput::_constructorTemplate;
 
 void
@@ -151,9 +193,11 @@ MIDIOutput::Initialize(Handle<Object> target)
 {
   Handle<FunctionTemplate> midiOutputTemplate = FunctionTemplate::New(New);
   _constructorTemplate = Persistent<FunctionTemplate>::New(midiOutputTemplate);
-  _constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
   _constructorTemplate->SetClassName(String::NewSymbol("MIDIOutput"));
+  _constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+
   NODE_SET_PROTOTYPE_METHOD(_constructorTemplate, "send", MIDIOutput::send);
+  NODE_SET_PROTOTYPE_METHOD(_constructorTemplate, "close", MIDIOutput::close);
 
   target->Set(String::NewSymbol("MIDIOutput"), _constructorTemplate->GetFunction());
 }
@@ -165,6 +209,7 @@ MIDIOutput::Initialize(Handle<Object> target)
 extern "C" {
   static void init (Handle<Object> target)
   {
+    Pm_Initialize();
     MIDI::Initialize(target);
   }
 

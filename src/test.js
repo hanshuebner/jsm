@@ -9,3 +9,4 @@ var port = MIDI.outputPorts()[0];
 console.log('opening port "' + port + '"');
 var output = new MIDI.MIDIOutput(port);
 
+output.close();
