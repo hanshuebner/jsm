@@ -16,17 +16,24 @@ output.sendNote = function (note, velocity, time) {
              time);
 }
 
-function sendSomeNotes(channel, velocity) {
+function sendSomeNotes(channel, basePitch, velocity) {
     output.channel = channel || 0;
     for (var i = 0; i < 3; i++) {
-        var pitch = 64 + i * 12;
-        output.sendNote(pitch, velocity, i * 1000);
-        output.sendNote(pitch, 0, i * 1000 + 100);
+        var pitch = basePitch + i * 12;
+        var period = 400;
+        output.sendNote(pitch, velocity, i * period);
+        output.sendNote(pitch+3, velocity, i * period);
+        output.sendNote(pitch+7, velocity, i * period);
+        output.sendNote(pitch+10, velocity, i * period);
+        output.sendNote(pitch, 0, i * period + 100);
+        output.sendNote(pitch+3, 0, i * period + 100);
+        output.sendNote(pitch+7, 0, i * period + 100);
+        output.sendNote(pitch+10, 0, i * period + 100);
         console.log('sent ' + i);
     }
 }
 
-sendSomeNotes(0, 45);
+sendSomeNotes(0, 64, 45);
 
 output.close();
 
