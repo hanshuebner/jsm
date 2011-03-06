@@ -65,7 +65,7 @@ class MIDIOutput
     public MIDIStream
 {
 public:
-  MIDIOutput(int portId);
+  MIDIOutput(int portId, int32_t latency);
 
   void send(const string& messageString,
             PmTimestamp when = 0);
@@ -187,7 +187,7 @@ MIDIInput::MIDIInput(int portId)
 // MIDIOutput methods
 // //////////////////////////////////////////////////////////////////
 
-MIDIOutput::MIDIOutput(int portId)
+MIDIOutput::MIDIOutput(int portId, int32_t latency)
 {
   PmError e = Pm_OpenOutput(&_pmMidiStream, 
                             portId, 
@@ -195,7 +195,7 @@ MIDIOutput::MIDIOutput(int portId)
                             1024,               // queue size
                             0,                  // time proc
                             0,                  // time info
-                            1);                 // latency
+                            latency);           // latency
 
   if (e < 0) {
     ThrowException(String::New("could not open MIDI output port"));
@@ -261,7 +261,12 @@ MIDIOutput::New(const Arguments& args)
     ThrowException(String::New(errorMessage.c_str()));
   }
 
-  MIDIOutput* midiOutput = new MIDIOutput(portId);
+  int32_t latency = 0;
+  if (args.Length() > 1) {
+    latency = args[1]->Int32Value();
+  }
+
+  MIDIOutput* midiOutput = new MIDIOutput(portId, latency);
   midiOutput->Wrap(args.This());
   return args.This();
 }
