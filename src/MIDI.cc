@@ -167,18 +167,39 @@ MIDIOutput::send(const string& messageString, PmTimestamp when)
   unsigned int statusByte;
   is >> hex >> statusByte;
 
-  if (statusByte == 0xf7) {
-    ThrowException(String::New("can't send sysex yet"));
-  }
-  unsigned int data1;
-  is >> hex >> data1;
-  unsigned int data2;
-  is >> hex >> data2;
+  if (statusByte == 0xf0) {
+    // send sysex message
+    unsigned char buf[messageString.size()];    // allocate plenty of buffer
+    buf[0] = 0xf0;
+    int count = 1;
+    while (!is.eof()) {
+      unsigned byte;
+      is >> hex >> byte;
+      if (is.fail()) {
+        ThrowException(String::New("error decoding hex byte in sysex message"));
+      }
+      buf[count++] = byte;
+    }
+    if (buf[count - 1] != 0xf7) {
+      ThrowException(String::New("sysex message must be terminated by 0xf7"));
+    }
+    PmError e = Pm_WriteSysEx(_pmMidiStream, when, buf);
 
-  PmError e = Pm_WriteShort(_pmMidiStream, when, Pm_Message(statusByte, data1, data2));
+    if (e < 0) {
+      ThrowException(String::New("could not send MIDI sysex message"));
+    }
+  } else {
 
-  if (e < 0) {
-    ThrowException(String::New("could not send MIDI message"));
+    unsigned int data1;
+    is >> hex >> data1;
+    unsigned int data2;
+    is >> hex >> data2;
+
+    PmError e = Pm_WriteShort(_pmMidiStream, when, Pm_Message(statusByte, data1, data2));
+
+    if (e < 0) {
+      ThrowException(String::New("could not send MIDI message"));
+    }
   }
 }
 
@@ -218,10 +239,6 @@ MIDIOutput::send(const Arguments& args)
 Handle<Value>
 MIDIOutput::close(const Arguments& args)
 {
-  cout << "waiting" << endl;
-  sleep(10);
-  cout << "done" << endl;
-  
   HandleScope scope;
   MIDIOutput* midiOutput = ObjectWrap::Unwrap<MIDIOutput>(args.This());
   midiOutput->close();
