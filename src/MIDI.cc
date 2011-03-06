@@ -40,7 +40,6 @@ private:
   static Handle<Value> getPorts(PortDirection direction);
   static Handle<Value> inputPorts(const Arguments& args);
   static Handle<Value> outputPorts(const Arguments& args);
-
 };
 
 class MIDIStream
@@ -62,10 +61,14 @@ class MIDIInput
 {
 public:
   MIDIInput(int portId) throw(JSException);
+  void listen(int32_t channels, int32_t filters) throw(JSException);
 
   // v8 interface
 public:
   static void Initialize(Handle<Object> target);
+
+  static Handle<Value> New(const Arguments& args);
+  static Handle<Value> listen(const Arguments& args);
 
 private:
   // Symbols emitted for events
@@ -148,12 +151,8 @@ MIDI::Initialize(Handle<Object> target) {
   target->Set(String::NewSymbol("inputPorts"), FunctionTemplate::New(inputPorts)->GetFunction());
   target->Set(String::NewSymbol("outputPorts"), FunctionTemplate::New(outputPorts)->GetFunction());
 
+  MIDIInput::Initialize(target);
   MIDIOutput::Initialize(target);
-  
-  /*
-  _messageSymbol = NODE_PSYMBOL("message");
-  _clockSymbol = NODE_PSYMBOL("clock");
-  */
 }
 
 // //////////////////////////////////////////////////////////////////
@@ -188,6 +187,9 @@ MIDIStream::close(const Arguments& args)
 // MIDIInput methods
 // //////////////////////////////////////////////////////////////////
 
+Persistent<String> MIDIInput::_messageSymbol;
+Persistent<String> MIDIInput::_clockSymbol;
+
 MIDIInput::MIDIInput(int portId)
   throw(JSException)
 {
@@ -201,6 +203,92 @@ MIDIInput::MIDIInput(int portId)
   if (e < 0) {
     throw JSException("could not open MIDI input port");
   }
+}
+
+void
+MIDIInput::listen(int32_t channels,
+                  int32_t filters)
+  throw(JSException)
+{
+  PmError e = Pm_SetChannelMask(_pmMidiStream, channels);
+  if (e < 0) {
+    throw JSException("cannot set MIDI channels");
+  }
+
+  e = Pm_SetFilter(_pmMidiStream, filters);
+  if (e < 0) {
+    throw JSException("cannot set MIDI filter");
+  }
+}
+
+// v8 interface
+
+Handle<Value>
+MIDIInput::New(const Arguments& args)
+{
+  HandleScope scope;
+
+  string portName = *String::Utf8Value(args[0]);
+  int portId = MIDI::getPortIndex(MIDI::INPUT, portName);
+  if (portId < 0) {
+    string errorMessage = (string) "Invalid MIDI input port name: " + portName;
+    return ThrowException(String::New(errorMessage.c_str()));
+  }
+
+  try {
+    MIDIInput* midiInput = new MIDIInput(portId);
+    midiInput->Wrap(args.This());
+    return args.This();
+  }
+  catch (JSException& e) {
+    return e.asV8Exception();
+  }
+}
+
+Handle<Value>
+MIDIInput::listen(const Arguments& args)
+{
+  HandleScope scope;
+
+  int32_t channels = 0xffff;
+  int32_t filters = PM_FILT_ACTIVE | PM_FILT_CLOCK | PM_FILT_PLAY | PM_FILT_UNDEFINED | PM_FILT_RESET | PM_FILT_TICK;
+
+  switch (args.Length()) {
+  case 2:
+    filters = args[1]->Int32Value();
+  case 1:
+    channels = args[0]->Int32Value();
+  case 0:
+    break;
+  default:
+      return ThrowException(String::New("too many arguments to MIDIInput listen"));
+  }
+
+  try {
+    MIDIInput* midiInput = ObjectWrap::Unwrap<MIDIInput>(args.This());
+    midiInput->listen(channels, filters);
+    return Handle<Value>();
+  }
+  catch (JSException& e) {
+    return e.asV8Exception();
+  }
+}
+
+void
+MIDIInput::Initialize(Handle<Object> target)
+{
+  HandleScope scope;
+
+  Handle<FunctionTemplate> midiInputTemplate = FunctionTemplate::New(New);
+  midiInputTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+
+  NODE_SET_PROTOTYPE_METHOD(midiInputTemplate, "close", MIDIStream::close);
+  NODE_SET_PROTOTYPE_METHOD(midiInputTemplate, "listen", listen);
+
+  _messageSymbol = NODE_PSYMBOL("message");
+  _clockSymbol = NODE_PSYMBOL("clock");
+
+  target->Set(String::NewSymbol("MIDIInput"), midiInputTemplate->GetFunction());
 }
 
 // //////////////////////////////////////////////////////////////////
