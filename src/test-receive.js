@@ -13,7 +13,7 @@ var midiInput = new MIDI.MIDIInput(port);
 midiInput.listen(0xffff, 0);
 
 function pollMIDI() {
-    midiInput.recv(function (error, messages) {
+    midiInput.recv(function (messages, error) {
         if (error) {
             console.log('error:', error);
         }

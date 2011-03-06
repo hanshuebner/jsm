@@ -320,7 +320,7 @@ MIDIInput::EIO_recvDone(eio_req* req)
   argv[1] = *Undefined();
 
   if (context->_readReturnCode < 0) {
-    argv[0] = String::New("error receiving");
+    argv[1] = Exception::Error(String::New("error receiving"));
   } else if (context->_readReturnCode > 0) {
     Local<Array> events = Array::New(context->_readReturnCode);
     for (int i = 0; i < context->_readReturnCode; i++) {
@@ -333,7 +333,7 @@ MIDIInput::EIO_recvDone(eio_req* req)
       string s = os.str();
       events->Set(i, String::New(s.c_str()));
     }
-    argv[1] = events;
+    argv[0] = events;
   }
 
   TryCatch tryCatch;
