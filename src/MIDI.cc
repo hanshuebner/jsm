@@ -32,8 +32,20 @@ private:
 
 };
 
+class MIDIStream
+{
+public:
+  virtual ~MIDIStream();
+  virtual void close();
+
+  static Handle<Value> close(const Arguments& args);
+protected:
+  PmStream* _pmMidiStream;
+};
+
 class MIDIInput
-  : public EventEmitter
+  : public EventEmitter,
+    public MIDIStream
 {
 public:
   static void Initialize(Handle<Object> target);
@@ -45,15 +57,14 @@ private:
 };
 
 class MIDIOutput
-  : public ObjectWrap
+  : public ObjectWrap,
+    public MIDIStream
 {
 public:
   MIDIOutput(int portId);
-  virtual ~MIDIOutput();
 
   void send(const string& messageString,
             PmTimestamp when = 0);
-  void close();
 
   // v8 interface
   static void Initialize(Handle<Object> target);
@@ -61,10 +72,6 @@ public:
 
   static Handle<Value> New(const Arguments& args);
   static Handle<Value> send(const Arguments& args);
-  static Handle<Value> close(const Arguments& args);
-
-private:
-  PmStream* _pmMidiStream;
 };
 
 // //////////////////////////////////////////////////////////////////
@@ -126,6 +133,34 @@ MIDI::Initialize(Handle<Object> target) {
 }
 
 // //////////////////////////////////////////////////////////////////
+// MIDIStream methods
+// //////////////////////////////////////////////////////////////////
+
+
+MIDIStream::~MIDIStream()
+{
+  close();
+}
+
+void
+MIDIStream::close()
+{
+  if (_pmMidiStream) {
+    Pm_Close(_pmMidiStream);
+    _pmMidiStream = 0;
+  }
+}
+
+Handle<Value>
+MIDIStream::close(const Arguments& args)
+{
+  HandleScope scope;
+  MIDIStream* midiStream = ObjectWrap::Unwrap<MIDIStream>(args.This());
+  midiStream->close();
+  return Handle<Value>();
+}
+
+// //////////////////////////////////////////////////////////////////
 // MIDIOutput methods
 // //////////////////////////////////////////////////////////////////
 
@@ -143,21 +178,6 @@ MIDIOutput::MIDIOutput(int portId)
     ThrowException(String::New("could not open midi port"));
   }
 }
-
-MIDIOutput::~MIDIOutput()
-{
-  close();
-}
-
-void
-MIDIOutput::close()
-{
-  if (_pmMidiStream) {
-    Pm_Close(_pmMidiStream);
-    _pmMidiStream = 0;
-  }
-}
-
 void
 MIDIOutput::send(const string& messageString, PmTimestamp when)
 {
@@ -236,15 +256,6 @@ MIDIOutput::send(const Arguments& args)
   return Handle<Value>();
 }
 
-Handle<Value>
-MIDIOutput::close(const Arguments& args)
-{
-  HandleScope scope;
-  MIDIOutput* midiOutput = ObjectWrap::Unwrap<MIDIOutput>(args.This());
-  midiOutput->close();
-  return Handle<Value>();
-}
-
 void
 MIDIOutput::Initialize(Handle<Object> target)
 {
@@ -254,7 +265,7 @@ MIDIOutput::Initialize(Handle<Object> target)
   midiOutputTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(midiOutputTemplate, "send", send);
-  NODE_SET_PROTOTYPE_METHOD(midiOutputTemplate, "close", close);
+  NODE_SET_PROTOTYPE_METHOD(midiOutputTemplate, "close", MIDIStream::close);
 
   target->Set(String::NewSymbol("MIDIOutput"), midiOutputTemplate->GetFunction());
 }
