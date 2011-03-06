@@ -80,10 +80,15 @@ Extension erzeugt Objekt:
 { function inputPorts(),          // liefert array mit input-port-namen zurueck
   function outputPorts(),         // liefert array mit output-port-namen zurueck
   function openInput(portName),
-  function openOutput(portname) sfgh
+  function openOutput(portname) 
   }
 
 inputPorts, outputPorts: Namen der Ports
 
+--
 
-
+Momentan: Zeitversetztes Senden möglich, aber keine Synchronisation
+des Sendevorgangs mit dem Node-Prozess.  portmidi stellt keine
+Synchronisationsmöglichkeit zur Verfügung, aber die letzte Sendezeit
+kann intern mitgeführt werden, so daß ein Callback aufgerufen wird,
+wenn die letzte MIDI-Nachricht gesendet worden sein müsste.
