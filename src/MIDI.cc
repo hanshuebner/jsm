@@ -48,6 +48,10 @@ class MIDIInput
     public MIDIStream
 {
 public:
+  MIDIInput(int portId);
+
+  // v8 interface
+public:
   static void Initialize(Handle<Object> target);
 
 private:
@@ -67,6 +71,7 @@ public:
             PmTimestamp when = 0);
 
   // v8 interface
+public:
   static void Initialize(Handle<Object> target);
   virtual void Dispose() { cout << "MIDIOutput::Dispose()" << endl; }
 
@@ -161,6 +166,24 @@ MIDIStream::close(const Arguments& args)
 }
 
 // //////////////////////////////////////////////////////////////////
+// MIDIInput methods
+// //////////////////////////////////////////////////////////////////
+
+MIDIInput::MIDIInput(int portId)
+{
+  PmError e = Pm_OpenInput(&_pmMidiStream, 
+                           portId, 
+                           0,                  // driver info
+                           16384,              // buffer size
+                           0,                  // time proc
+                           0);                 // time info
+
+  if (e < 0) {
+    ThrowException(String::New("could not open MIDI input port"));
+  }
+}
+
+// //////////////////////////////////////////////////////////////////
 // MIDIOutput methods
 // //////////////////////////////////////////////////////////////////
 
@@ -175,9 +198,10 @@ MIDIOutput::MIDIOutput(int portId)
                             1);                 // latency
 
   if (e < 0) {
-    ThrowException(String::New("could not open midi port"));
+    ThrowException(String::New("could not open MIDI output port"));
   }
 }
+
 void
 MIDIOutput::send(const string& messageString, PmTimestamp when)
 {
