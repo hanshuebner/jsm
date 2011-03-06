@@ -59,7 +59,7 @@ class MIDIInput
     public MIDIStream
 {
 public:
-  MIDIInput(int portId);
+  MIDIInput(int portId) throw(JSException);
 
   // v8 interface
 public:
@@ -76,10 +76,11 @@ class MIDIOutput
     public MIDIStream
 {
 public:
-  MIDIOutput(int portId, int32_t latency);
+  MIDIOutput(int portId, int32_t latency) throw(JSException);
 
   void send(const string& messageString,
-            PmTimestamp when = 0);
+            PmTimestamp when = 0)
+    throw(JSException);
 
   int32_t latency() const { return _latency; }
 
@@ -186,6 +187,7 @@ MIDIStream::close(const Arguments& args)
 // //////////////////////////////////////////////////////////////////
 
 MIDIInput::MIDIInput(int portId)
+  throw(JSException)
 {
   PmError e = Pm_OpenInput(&_pmMidiStream, 
                            portId, 
@@ -204,6 +206,7 @@ MIDIInput::MIDIInput(int portId)
 // //////////////////////////////////////////////////////////////////
 
 MIDIOutput::MIDIOutput(int portId, int32_t latency)
+  throw(JSException)
   : _latency(latency)
 {
   PmError e = Pm_OpenOutput(&_pmMidiStream, 
@@ -221,6 +224,7 @@ MIDIOutput::MIDIOutput(int portId, int32_t latency)
 
 void
 MIDIOutput::send(const string& messageString, PmTimestamp when)
+  throw(JSException)
 {
   cout << "send \"" << messageString << "\" at " << when << endl;
   istringstream is(messageString);
