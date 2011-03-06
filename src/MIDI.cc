@@ -14,6 +14,17 @@ using namespace v8;
 using namespace node;
 using namespace std;
 
+class JSException
+{
+public:
+  JSException(const string& text) : _message(text) {};
+  const string& message() const { return _message; }
+  Handle<Value> asV8Exception() const { return ThrowException(String::New(message().c_str())); }
+
+private:
+  string _message;
+};
+
 class MIDI
 {
 public:
@@ -69,6 +80,11 @@ public:
 
   void send(const string& messageString,
             PmTimestamp when = 0);
+
+  int32_t latency() const { return _latency; }
+
+private:
+  int32_t _latency;
 
   // v8 interface
 public:
@@ -179,7 +195,7 @@ MIDIInput::MIDIInput(int portId)
                            0);                 // time info
 
   if (e < 0) {
-    ThrowException(String::New("could not open MIDI input port"));
+    throw JSException("could not open MIDI input port");
   }
 }
 
@@ -188,6 +204,7 @@ MIDIInput::MIDIInput(int portId)
 // //////////////////////////////////////////////////////////////////
 
 MIDIOutput::MIDIOutput(int portId, int32_t latency)
+  : _latency(latency)
 {
   PmError e = Pm_OpenOutput(&_pmMidiStream, 
                             portId, 
@@ -198,7 +215,7 @@ MIDIOutput::MIDIOutput(int portId, int32_t latency)
                             latency);           // latency
 
   if (e < 0) {
-    ThrowException(String::New("could not open MIDI output port"));
+    throw JSException("could not open MIDI output port");
   }
 }
 
@@ -220,17 +237,17 @@ MIDIOutput::send(const string& messageString, PmTimestamp when)
       unsigned byte;
       is >> hex >> byte;
       if (is.fail()) {
-        ThrowException(String::New("error decoding hex byte in sysex message"));
+        throw JSException("error decoding hex byte in sysex message");
       }
       buf[count++] = byte;
     }
     if (buf[count - 1] != 0xf7) {
-      ThrowException(String::New("sysex message must be terminated by 0xf7"));
+      throw JSException("sysex message must be terminated by 0xf7");
     }
     PmError e = Pm_WriteSysEx(_pmMidiStream, when, buf);
 
     if (e < 0) {
-      ThrowException(String::New("could not send MIDI sysex message"));
+      throw JSException("could not send MIDI sysex message");
     }
   } else {
 
@@ -242,7 +259,7 @@ MIDIOutput::send(const string& messageString, PmTimestamp when)
     PmError e = Pm_WriteShort(_pmMidiStream, when, Pm_Message(statusByte, data1, data2));
 
     if (e < 0) {
-      ThrowException(String::New("could not send MIDI message"));
+      throw JSException("could not send MIDI message");
     }
   }
 }
@@ -258,7 +275,7 @@ MIDIOutput::New(const Arguments& args)
   int portId = MIDI::getPortIndex(MIDI::OUTPUT, portName);
   if (portId < 0) {
     string errorMessage = (string) "Invalid MIDI output port name: " + portName;
-    ThrowException(String::New(errorMessage.c_str()));
+    return ThrowException(String::New(errorMessage.c_str()));
   }
 
   int32_t latency = 0;
@@ -266,9 +283,14 @@ MIDIOutput::New(const Arguments& args)
     latency = args[1]->Int32Value();
   }
 
-  MIDIOutput* midiOutput = new MIDIOutput(portId, latency);
-  midiOutput->Wrap(args.This());
-  return args.This();
+  try {
+    MIDIOutput* midiOutput = new MIDIOutput(portId, latency);
+    midiOutput->Wrap(args.This());
+    return args.This();
+  }
+  catch (JSException& e) {
+    return e.asV8Exception();
+  }
 }
 
 Handle<Value>
@@ -278,11 +300,22 @@ MIDIOutput::send(const Arguments& args)
   MIDIOutput* midiOutput = ObjectWrap::Unwrap<MIDIOutput>(args.This());
   string messageString = *String::Utf8Value(args[0]);
   PmTimestamp when = 0;
+
   if (args.Length() > 1) {
+    if (!midiOutput->latency()) {
+      return ThrowException(String::New("can't delay message sending on MIDI output stream opened with zero latency"));
+    }
+
     when = args[1]->Int32Value();
   }
-  midiOutput->send(messageString, when);
-  return Handle<Value>();
+
+  try {
+    midiOutput->send(messageString, when);
+    return Handle<Value>();
+  }
+  catch (JSException& e) {
+    return e.asV8Exception();
+  }
 }
 
 void

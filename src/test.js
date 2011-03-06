@@ -8,7 +8,7 @@ var port = MIDI.outputPorts()[0];
 
 console.log('opening port "' + port + '"');
 
-var output = new MIDI.MIDIOutput(port);
+var output = new MIDI.MIDIOutput(port, 1);
 console.log('prototype:', output.prototype);
 
 output.sendNote = function (note, velocity, time) {
