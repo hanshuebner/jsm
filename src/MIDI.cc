@@ -69,11 +69,33 @@ public:
 
   static Handle<Value> New(const Arguments& args);
   static Handle<Value> listen(const Arguments& args);
+  static Handle<Value> recv(const Arguments& args);
 
 private:
   // Symbols emitted for events
   static Persistent<String> _messageSymbol;
   static Persistent<String> _clockSymbol;
+
+  static int EIO_recv(eio_req* req);
+  static int EIO_recvDone(eio_req* req);
+
+  class ReceiveContext {
+
+    friend int MIDIInput::EIO_recv(eio_req* req);
+    friend int MIDIInput::EIO_recvDone(eio_req* req);
+
+  public:
+    ReceiveContext(MIDIInput* midiInput, Persistent<Function> callback)
+      : _midiInput(midiInput), _callback(callback) {}
+
+    enum { RECV_EVENTS = 16 };
+
+  private:
+    MIDIInput* _midiInput;
+    Persistent<Function> _callback;
+    int _readReturnCode;
+    PmEvent _events[RECV_EVENTS];
+  };
 };
 
 class MIDIOutput
@@ -180,7 +202,7 @@ MIDIStream::close(const Arguments& args)
   HandleScope scope;
   MIDIStream* midiStream = ObjectWrap::Unwrap<MIDIStream>(args.This());
   midiStream->close();
-  return Handle<Value>();
+  return Undefined();
 }
 
 // //////////////////////////////////////////////////////////////////
@@ -267,11 +289,88 @@ MIDIInput::listen(const Arguments& args)
   try {
     MIDIInput* midiInput = ObjectWrap::Unwrap<MIDIInput>(args.This());
     midiInput->listen(channels, filters);
-    return Handle<Value>();
+    return Undefined();
   }
   catch (JSException& e) {
     return e.asV8Exception();
   }
+}
+
+int
+MIDIInput::EIO_recv(eio_req* req)
+{
+  ReceiveContext* context = static_cast<ReceiveContext*>(req->data);
+  MIDIInput* midiInput = context->_midiInput;
+
+  context->_readReturnCode = Pm_Read(midiInput->_pmMidiStream, context->_events, ReceiveContext::RECV_EVENTS);
+
+  return 0;
+}
+
+int
+MIDIInput::EIO_recvDone(eio_req* req)
+{
+  HandleScope scope;
+  ReceiveContext* context = static_cast<ReceiveContext*>(req->data);
+  ev_unref(EV_DEFAULT_UC);
+  context->_midiInput->Unref();
+
+  Local<Value> argv[2];
+  argv[0] = *Undefined();
+  argv[1] = *Undefined();
+
+  if (context->_readReturnCode < 0) {
+    argv[0] = String::New("error receiving");
+  } else if (context->_readReturnCode > 0) {
+    Local<Array> events = Array::New(context->_readReturnCode);
+    for (int i = 0; i < context->_readReturnCode; i++) {
+      PmMessage message = context->_events[i].message;
+      ostringstream os;
+      os << hex
+         << Pm_MessageStatus(message)
+         << " " << Pm_MessageData1(message)
+         << " " << Pm_MessageData2(message);
+      string s = os.str();
+      events->Set(i, String::New(s.c_str()));
+    }
+    argv[1] = events;
+  }
+
+  TryCatch tryCatch;
+  context->_callback->Call(Context::GetCurrent()->Global(), 2, argv);
+
+  if (tryCatch.HasCaught()) {
+    FatalException(tryCatch);
+  }
+
+  context->_callback.Dispose();
+
+  delete context;
+
+  return 0;
+}
+
+Handle<Value>
+MIDIInput::recv(const Arguments& args)
+{
+  HandleScope scope;
+
+  if (args.Length() != 1
+      || !args[0]->IsFunction()) {
+    return ThrowException(String::New("need one callback function argument in recv"));
+  }
+
+  MIDIInput* midiInput = ObjectWrap::Unwrap<MIDIInput>(args.This());
+  midiInput->Ref();
+
+  eio_custom(EIO_recv,
+             EIO_PRI_DEFAULT,
+             EIO_recvDone,
+             new ReceiveContext(midiInput,
+                                Persistent<Function>::New(Local<Function>::Cast(args[0]))));
+  ev_ref(EV_DEFAULT_UC);
+
+  return Undefined();
 }
 
 void
@@ -284,6 +383,7 @@ MIDIInput::Initialize(Handle<Object> target)
 
   NODE_SET_PROTOTYPE_METHOD(midiInputTemplate, "close", MIDIStream::close);
   NODE_SET_PROTOTYPE_METHOD(midiInputTemplate, "listen", listen);
+  NODE_SET_PROTOTYPE_METHOD(midiInputTemplate, "recv", recv);
 
   _messageSymbol = NODE_PSYMBOL("message");
   _clockSymbol = NODE_PSYMBOL("clock");
@@ -405,7 +505,7 @@ MIDIOutput::send(const Arguments& args)
 
   try {
     midiOutput->send(messageString, when);
-    return Handle<Value>();
+    return Undefined();
   }
   catch (JSException& e) {
     return e.asV8Exception();

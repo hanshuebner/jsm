@@ -8,7 +8,22 @@ var port = MIDI.inputPorts()[0];
 
 console.log('opening port "' + port + '"');
 
-var input = new MIDI.MIDIInput(port);
+var midiInput = new MIDI.MIDIInput(port);
 
-input.listen(0xffff, 0);
+midiInput.listen(0xffff, 0);
+
+function pollMIDI() {
+    midiInput.recv(function (error, messages) {
+        if (error) {
+            console.log('error:', error);
+        }
+        if (messages) {
+            console.log('messages:', messages);
+        }
+    });
+    process.nextTick(pollMIDI);
+}
+
+pollMIDI();
+
 
