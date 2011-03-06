@@ -52,6 +52,8 @@ public:
   static Handle<Value> close(const Arguments& args);
 protected:
   PmStream* _pmMidiStream;
+
+  enum { MIDISTREAM_BUFSIZE = 16384 };
 };
 
 class MIDIInput
@@ -192,7 +194,7 @@ MIDIInput::MIDIInput(int portId)
   PmError e = Pm_OpenInput(&_pmMidiStream, 
                            portId, 
                            0,                  // driver info
-                           16384,              // buffer size
+                           MIDISTREAM_BUFSIZE, // buffer size
                            0,                  // time proc
                            0);                 // time info
 
@@ -212,7 +214,7 @@ MIDIOutput::MIDIOutput(int portId, int32_t latency)
   PmError e = Pm_OpenOutput(&_pmMidiStream, 
                             portId, 
                             0,                  // driver info
-                            1024,               // queue size
+                            MIDISTREAM_BUFSIZE, // queue size
                             0,                  // time proc
                             0,                  // time info
                             latency);           // latency
