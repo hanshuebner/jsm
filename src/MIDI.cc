@@ -82,9 +82,6 @@ public:
   static Handle<Value> recv(const Arguments& args);
 
 private:
-  // Symbols emitted for events
-  static Persistent<String> _messageSymbol;
-  static Persistent<String> _clockSymbol;
 
   condition_variable _dataReceivedCondition;
   mutex _midiStreamMutex;
@@ -234,9 +231,6 @@ MIDIStream::close(const Arguments& args)
 // //////////////////////////////////////////////////////////////////
 // MIDIInput methods
 // //////////////////////////////////////////////////////////////////
-
-Persistent<String> MIDIInput::_messageSymbol;
-Persistent<String> MIDIInput::_clockSymbol;
 
 MIDIInput::MIDIInput(int portId)
   throw(JSException)
@@ -451,9 +445,6 @@ MIDIInput::Initialize(Handle<Object> target)
   NODE_SET_PROTOTYPE_METHOD(midiInputTemplate, "close", MIDIStream::close);
   NODE_SET_PROTOTYPE_METHOD(midiInputTemplate, "listen", listen);
   NODE_SET_PROTOTYPE_METHOD(midiInputTemplate, "recv", recv);
-
-  _messageSymbol = NODE_PSYMBOL("message");
-  _clockSymbol = NODE_PSYMBOL("clock");
 
   target->Set(String::NewSymbol("MIDIInput"), midiInputTemplate->GetFunction());
 }
