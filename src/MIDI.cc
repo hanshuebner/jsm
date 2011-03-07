@@ -3,16 +3,22 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <set>
 
 #include <v8.h>
 #include <node.h>
 #include <node_events.h>
 
-#include <portmidi.h>
+#include <boost/thread.hpp>
 
+#include <portmidi.h>
+#include <pmutil.h>
+#include <porttime.h>
+
+using namespace std;
+using namespace boost;
 using namespace v8;
 using namespace node;
-using namespace std;
 
 class JSException
 {
@@ -37,6 +43,7 @@ public:
   static int getPortIndex(PortDirection direction, string name);
 
 private:
+  // v8 interface
   static Handle<Value> getPorts(PortDirection direction);
   static Handle<Value> inputPorts(const Arguments& args);
   static Handle<Value> outputPorts(const Arguments& args);
@@ -61,7 +68,10 @@ class MIDIInput
 {
 public:
   MIDIInput(int portId) throw(JSException);
+  virtual ~MIDIInput();
+
   void listen(int32_t channels, int32_t filters) throw(JSException);
+  static void pollAll(PtTimestamp timestamp, void* userData);
 
   // v8 interface
 public:
@@ -75,6 +85,15 @@ private:
   // Symbols emitted for events
   static Persistent<String> _messageSymbol;
   static Persistent<String> _clockSymbol;
+
+  condition_variable _dataReceivedCondition;
+  mutex _midiStreamMutex;
+
+  void pollData();
+
+  // receivers that are being polled
+  static set<MIDIInput*> _receivers;
+  static mutex _receiversMutex;
 
   static int EIO_recv(eio_req* req);
   static int EIO_recvDone(eio_req* req);
@@ -90,12 +109,17 @@ private:
 
     enum { RECV_EVENTS = 16 };
 
+    PmEvent* eventsBuffer() { return _events; }
+    void readCompleted(int readReturnCode) { _readReturnCode = readReturnCode; }
+
   private:
     MIDIInput* _midiInput;
     Persistent<Function> _callback;
     int _readReturnCode;
     PmEvent _events[RECV_EVENTS];
   };
+
+  void waitForData(ReceiveContext* context);
 };
 
 class MIDIOutput
@@ -139,6 +163,8 @@ MIDI::getPortIndex(PortDirection direction, string name)
   }
   return -1;
 }
+
+// v8 interface
 
 Handle<Value>
 MIDI::getPorts(PortDirection direction)
@@ -225,6 +251,15 @@ MIDIInput::MIDIInput(int portId)
   if (e < 0) {
     throw JSException("could not open MIDI input port");
   }
+
+  unique_lock<mutex> lock(_receiversMutex);
+  _receivers.insert(this);
+}
+
+MIDIInput::~MIDIInput()
+{
+  unique_lock<mutex> lock(_receiversMutex);
+  _receivers.erase(this);
 }
 
 void
@@ -296,13 +331,45 @@ MIDIInput::listen(const Arguments& args)
   }
 }
 
+set<MIDIInput*> MIDIInput::_receivers;
+mutex MIDIInput::_receiversMutex;
+
+void
+MIDIInput::pollAll(PtTimestamp timestamp, void* userData)
+{
+  unique_lock<mutex> lock(_receiversMutex);
+  for (set<MIDIInput*>::iterator i = _receivers.begin(); i != _receivers.end(); i++) {
+    (*i)->pollData();
+  }
+}
+
+void
+MIDIInput::pollData()
+{
+  unique_lock<mutex> lock(_midiStreamMutex);
+  if (Pm_Poll(_pmMidiStream)) {
+    _dataReceivedCondition.notify_one();
+  }
+}
+
+void
+MIDIInput::waitForData(ReceiveContext* context)
+{
+  unique_lock<mutex> lock(_midiStreamMutex);
+  while (!Pm_Poll(_pmMidiStream)) {
+    _dataReceivedCondition.wait(lock);
+  }
+
+  context->readCompleted(Pm_Read(_pmMidiStream, context->eventsBuffer(), ReceiveContext::RECV_EVENTS));
+}
+
 int
 MIDIInput::EIO_recv(eio_req* req)
 {
   ReceiveContext* context = static_cast<ReceiveContext*>(req->data);
   MIDIInput* midiInput = context->_midiInput;
 
-  context->_readReturnCode = Pm_Read(midiInput->_pmMidiStream, context->_events, ReceiveContext::RECV_EVENTS);
+  midiInput->waitForData(context);
 
   return 0;
 }
@@ -533,6 +600,7 @@ MIDIOutput::Initialize(Handle<Object> target)
 extern "C" {
   static void init (Handle<Object> target)
   {
+    Pt_Start(1, &MIDIInput::pollAll, 0);
     Pm_Initialize();
     HandleScope handleScope;
     

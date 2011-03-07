@@ -12,18 +12,15 @@ var midiInput = new MIDI.MIDIInput(port);
 
 midiInput.listen(0xffff, 0);
 
-function pollMIDI() {
-    midiInput.recv(function (messages, error) {
-        if (error) {
-            console.log('error:', error);
-        }
-        if (messages) {
-            console.log('messages:', messages);
-        }
-    });
-    process.nextTick(pollMIDI);
+function dumpReceivedMessage (messages, error) {
+    if (error) {
+        console.log('error:', error);
+    } else {
+        console.log('messages:', messages);
+        midiInput.recv(dumpReceivedMessage);
+    }
 }
 
-pollMIDI();
+midiInput.recv(dumpReceivedMessage);
 
 
