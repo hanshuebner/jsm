@@ -4,6 +4,8 @@
 #include <iomanip>
 #include <sstream>
 #include <set>
+#include <queue>
+#include <vector>
 
 #include <v8.h>
 #include <node.h>
@@ -41,6 +43,11 @@ public:
   // Get id of MIDI port with the given name.  Returns the ID or -1 if
   // no MIDI device with the given name is found
   static int getPortIndex(PortDirection direction, string name);
+
+  enum {
+    SYSEX_START = 0xf0,
+    SYSEX_END = 0xf7
+  };
 
 private:
   // v8 interface
@@ -94,29 +101,34 @@ private:
 
   static int EIO_recv(eio_req* req);
   static int EIO_recvDone(eio_req* req);
+  void readResultsToJSCallbackArguments(Local<Value> argv[]);
 
-  class ReceiveContext {
+  class ReceiveIOCB {
 
     friend int MIDIInput::EIO_recv(eio_req* req);
     friend int MIDIInput::EIO_recvDone(eio_req* req);
 
   public:
-    ReceiveContext(MIDIInput* midiInput, Persistent<Function> callback)
+    ReceiveIOCB(MIDIInput* midiInput, Persistent<Function> callback)
       : _midiInput(midiInput), _callback(callback) {}
 
     enum { RECV_EVENTS = 16 };
 
-    PmEvent* eventsBuffer() { return _events; }
-    void readCompleted(int readReturnCode) { _readReturnCode = readReturnCode; }
-
   private:
     MIDIInput* _midiInput;
     Persistent<Function> _callback;
-    int _readReturnCode;
-    PmEvent _events[RECV_EVENTS];
   };
 
-  void waitForData(ReceiveContext* context);
+  void waitForData(ReceiveIOCB* iocb);
+  bool dataAvailable() const { return _sysexQueue.size() || _readQueue.size(); }
+
+  PmError _error;
+  queue<PmEvent> _readQueue;
+  typedef vector<unsigned char> SysexMessageBuffer;
+  queue<SysexMessageBuffer> _sysexQueue;
+  bool _inSysexMessage;
+
+  void unpackSysexMessage(PmMessage message);
 };
 
 class MIDIOutput
@@ -234,6 +246,7 @@ MIDIStream::close(const Arguments& args)
 
 MIDIInput::MIDIInput(int portId)
   throw(JSException)
+  : _inSysexMessage(false)
 {
   PmError e = Pm_OpenInput(&_pmMidiStream, 
                            portId, 
@@ -347,23 +360,91 @@ MIDIInput::pollData()
 }
 
 void
-MIDIInput::waitForData(ReceiveContext* context)
+MIDIInput::unpackSysexMessage(PmMessage message)
+{
+  unsigned long buf = static_cast<unsigned long>(message);
+
+  for (int i = 0; i < 4; i++) {
+    unsigned char b = buf & 0xff;
+    _sysexQueue.front().push_back(b);
+    if (b == MIDI::SYSEX_END) {
+      _inSysexMessage = false;
+      break;
+    }
+  }
+}
+
+void
+MIDIInput::waitForData(ReceiveIOCB* iocb)
 {
   unique_lock<mutex> lock(_midiStreamMutex);
   while (!Pm_Poll(_pmMidiStream)) {
     _dataReceivedCondition.wait(lock);
   }
 
-  context->readCompleted(Pm_Read(_pmMidiStream, context->eventsBuffer(), ReceiveContext::RECV_EVENTS));
+  const int RECV_EVENTS = 32;                   // xxx fixme move constant
+  PmEvent events[RECV_EVENTS];
+  int rc = Pm_Read(_pmMidiStream, events, RECV_EVENTS);
+  if (rc < 0) {
+    _error = (PmError) rc;
+    while (!_readQueue.empty()) {
+      _readQueue.pop();
+    }
+    while (!_sysexQueue.empty()) {
+      _sysexQueue.pop();
+    }
+  } else {
+    for (int i = 0; i < rc; i++) {
+      const PmMessage& message = events[i].message;
+      if (Pm_MessageStatus(message) == MIDI::SYSEX_START) {
+        _inSysexMessage = true;
+        _sysexQueue.push(vector<unsigned char>());
+      }
+      if (_inSysexMessage) {
+        unpackSysexMessage(message);
+      } else {
+        _readQueue.push(events[i]);
+      }
+    }
+  }
+}
+
+void
+MIDIInput::readResultsToJSCallbackArguments(Local<Value> argv[])
+{
+  if (_error) {
+    argv[1] = Exception::Error(String::New("error receiving"));
+  } else {
+    Local<Array> events = Array::New(_sysexQueue.size() + _readQueue.size());
+    int i = 0;
+    // xxx order?
+    while (_sysexQueue.size()) {
+      _sysexQueue.pop();
+    }
+    while (_readQueue.size()) {
+      PmMessage message = _readQueue.back().message;
+      _readQueue.pop();
+      ostringstream os;
+      os << hex
+         << Pm_MessageStatus(message)
+         << " " << Pm_MessageData1(message)
+         << " " << Pm_MessageData2(message);
+      string s = os.str();
+      events->Set(i++, String::New(s.c_str()));
+    }
+    argv[0] = events;
+  }
 }
 
 int
 MIDIInput::EIO_recv(eio_req* req)
 {
-  ReceiveContext* context = static_cast<ReceiveContext*>(req->data);
-  MIDIInput* midiInput = context->_midiInput;
+  ReceiveIOCB* iocb = static_cast<ReceiveIOCB*>(req->data);
+  MIDIInput* midiInput = iocb->_midiInput;
 
-  midiInput->waitForData(context);
+  while (!midiInput->dataAvailable()) {
+    midiInput->waitForData(iocb);
+  }
 
   return 0;
 }
@@ -372,41 +453,26 @@ int
 MIDIInput::EIO_recvDone(eio_req* req)
 {
   HandleScope scope;
-  ReceiveContext* context = static_cast<ReceiveContext*>(req->data);
+  ReceiveIOCB* iocb = static_cast<ReceiveIOCB*>(req->data);
   ev_unref(EV_DEFAULT_UC);
-  context->_midiInput->Unref();
 
   Local<Value> argv[2];
   argv[0] = *Undefined();
   argv[1] = *Undefined();
 
-  if (context->_readReturnCode < 0) {
-    argv[1] = Exception::Error(String::New("error receiving"));
-  } else if (context->_readReturnCode > 0) {
-    Local<Array> events = Array::New(context->_readReturnCode);
-    for (int i = 0; i < context->_readReturnCode; i++) {
-      PmMessage message = context->_events[i].message;
-      ostringstream os;
-      os << hex
-         << Pm_MessageStatus(message)
-         << " " << Pm_MessageData1(message)
-         << " " << Pm_MessageData2(message);
-      string s = os.str();
-      events->Set(i, String::New(s.c_str()));
-    }
-    argv[0] = events;
-  }
+  iocb->_midiInput->readResultsToJSCallbackArguments(argv);
+  iocb->_midiInput->Unref();
 
   TryCatch tryCatch;
-  context->_callback->Call(Context::GetCurrent()->Global(), 2, argv);
+  iocb->_callback->Call(Context::GetCurrent()->Global(), 2, argv);
 
   if (tryCatch.HasCaught()) {
     FatalException(tryCatch);
   }
 
-  context->_callback.Dispose();
+  iocb->_callback.Dispose();
 
-  delete context;
+  delete iocb;
 
   return 0;
 }
@@ -423,12 +489,13 @@ MIDIInput::recv(const Arguments& args)
 
   MIDIInput* midiInput = ObjectWrap::Unwrap<MIDIInput>(args.This());
   midiInput->Ref();
+  midiInput->_error = pmNoError;
 
   eio_custom(EIO_recv,
              EIO_PRI_DEFAULT,
              EIO_recvDone,
-             new ReceiveContext(midiInput,
-                                Persistent<Function>::New(Local<Function>::Cast(args[0]))));
+             new ReceiveIOCB(midiInput,
+                             Persistent<Function>::New(Local<Function>::Cast(args[0]))));
   ev_ref(EV_DEFAULT_UC);
 
   return Undefined();
