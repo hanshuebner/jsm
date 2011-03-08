@@ -91,7 +91,7 @@ public:
 private:
 
   condition_variable _dataReceivedCondition;
-  mutex _midiStreamMutex;
+  mutex _mutex;
 
   void pollData();
 
@@ -353,7 +353,7 @@ MIDIInput::pollAll(PtTimestamp timestamp, void* userData)
 void
 MIDIInput::pollData()
 {
-  unique_lock<mutex> lock(_midiStreamMutex);
+  unique_lock<mutex> lock(_mutex);
   if (Pm_Poll(_pmMidiStream)) {
     _dataReceivedCondition.notify_one();
   }
@@ -377,7 +377,7 @@ MIDIInput::unpackSysexMessage(PmMessage message)
 void
 MIDIInput::waitForData(ReceiveIOCB* iocb)
 {
-  unique_lock<mutex> lock(_midiStreamMutex);
+  unique_lock<mutex> lock(_mutex);
   while (!Pm_Poll(_pmMidiStream)) {
     _dataReceivedCondition.wait(lock);
   }
@@ -412,6 +412,8 @@ MIDIInput::waitForData(ReceiveIOCB* iocb)
 void
 MIDIInput::readResultsToJSCallbackArguments(Local<Value> argv[])
 {
+  unique_lock<mutex> lock(_mutex);
+
   if (_error) {
     argv[1] = Exception::Error(String::New("error receiving"));
   } else {
@@ -422,7 +424,7 @@ MIDIInput::readResultsToJSCallbackArguments(Local<Value> argv[])
       _sysexQueue.pop();
     }
     while (_readQueue.size()) {
-      PmMessage message = _readQueue.back().message;
+      PmMessage message = _readQueue.front().message;
       _readQueue.pop();
       ostringstream os;
       os << hex
