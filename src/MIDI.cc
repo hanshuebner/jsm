@@ -49,6 +49,8 @@ public:
     SYSEX_END = 0xf7
   };
 
+  static bool IS_REALTIME(unsigned char status) { return (status & 0xf8) == 0xf8; }
+
 private:
   // v8 interface
   static Handle<Value> getPorts(PortDirection direction);
@@ -126,9 +128,11 @@ private:
   queue<PmEvent> _readQueue;
   typedef vector<unsigned char> SysexMessageBuffer;
   queue<SysexMessageBuffer> _sysexQueue;
-  bool _inSysexMessage;
+  SysexMessageBuffer _currentSysexMessage;
 
-  void unpackSysexMessage(PmMessage message);
+  bool inSysexMessage() { return _currentSysexMessage.size(); }
+
+  void unpackSysexMessage(PmEvent message);
 };
 
 class MIDIOutput
@@ -246,7 +250,6 @@ MIDIStream::close(const Arguments& args)
 
 MIDIInput::MIDIInput(int portId)
   throw(JSException)
-  : _inSysexMessage(false)
 {
   PmError e = Pm_OpenInput(&_pmMidiStream, 
                            portId, 
@@ -360,16 +363,42 @@ MIDIInput::pollData()
 }
 
 void
-MIDIInput::unpackSysexMessage(PmMessage message)
+MIDIInput::unpackSysexMessage(PmEvent event)
 {
+  PmMessage message =  event.message;
   unsigned long buf = static_cast<unsigned long>(message);
 
   for (int i = 0; i < 4; i++) {
     unsigned char b = buf & 0xff;
-    _sysexQueue.front().push_back(b);
+    buf >>= 8;
     if (b == MIDI::SYSEX_END) {
-      _inSysexMessage = false;
+      _currentSysexMessage.push_back(b);
+      _sysexQueue.push(_currentSysexMessage);
+      _currentSysexMessage.clear();
       break;
+    } else if (MIDI::IS_REALTIME(b)) {
+      PmEvent rtEvent;
+      rtEvent.message = b;
+      rtEvent.timestamp = event.timestamp;
+      _readQueue.push(rtEvent);
+    } else if ((b & 0x80)
+               && (_currentSysexMessage.size() > 1
+                   || (b != MIDI::SYSEX_START))) {
+      // We're receiving some non-realtime status while receiving a
+      // sysex message.  Assume that this is not an error, but flush
+      // the current sysex message (i.e. the user may have unplugged
+      // the cable while a sysex message was being transferred)
+      _currentSysexMessage.clear();
+      // Unfortunately, portmidi does not resync itself when it
+      // receives a new message inside a sysex message.  We can cope
+      // with another sysex message, but fail for others.
+      if (b == MIDI::SYSEX_START) {
+        _currentSysexMessage.push_back(b);
+      } else {
+        break;
+      }
+    } else {
+      _currentSysexMessage.push_back(b);
     }
   }
 }
@@ -396,14 +425,20 @@ MIDIInput::waitForData(ReceiveIOCB* iocb)
   } else {
     for (int i = 0; i < rc; i++) {
       const PmMessage& message = events[i].message;
-      if (Pm_MessageStatus(message) == MIDI::SYSEX_START) {
-        _inSysexMessage = true;
-        _sysexQueue.push(vector<unsigned char>());
-      }
-      if (_inSysexMessage) {
-        unpackSysexMessage(message);
+      const unsigned status = Pm_MessageStatus(message);
+
+      if (inSysexMessage()) {
+        if (MIDI::IS_REALTIME(status)) {
+          _readQueue.push(events[i]);
+        } else {
+          unpackSysexMessage(events[i]);
+        }
       } else {
-        _readQueue.push(events[i]);
+        if (status == MIDI::SYSEX_START) {
+          unpackSysexMessage(events[i]);
+        } else {
+          _readQueue.push(events[i]);
+        }
       }
     }
   }
@@ -421,11 +456,21 @@ MIDIInput::readResultsToJSCallbackArguments(Local<Value> argv[])
     int i = 0;
     // xxx order?
     while (_sysexQueue.size()) {
+      ostringstream os;
+      for (SysexMessageBuffer::const_iterator j = _sysexQueue.front().begin();
+           j != _sysexQueue.front().end();
+           j++) {
+        if (os.tellp()) {
+          os << ' ';
+        }
+        os << hex << (unsigned) (*j);
+      }
+      string s = os.str();
+      events->Set(i++, String::New(s.c_str()));
       _sysexQueue.pop();
     }
     while (_readQueue.size()) {
       PmMessage message = _readQueue.front().message;
-      _readQueue.pop();
       ostringstream os;
       os << hex
          << Pm_MessageStatus(message)
@@ -433,6 +478,7 @@ MIDIInput::readResultsToJSCallbackArguments(Local<Value> argv[])
          << " " << Pm_MessageData2(message);
       string s = os.str();
       events->Set(i++, String::New(s.c_str()));
+      _readQueue.pop();
     }
     argv[0] = events;
   }
