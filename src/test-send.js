@@ -12,6 +12,22 @@ var output = new MIDI.MIDIOutput(port, 1);
 
 output.send('f0 00 01 02 f7');
 
+try {
+    output.send([]);
+}
+catch (e) {
+    console.log('expectedly caught error:', e);
+}
+
+output.send([0xb0, 90]);
+
+try {
+    output.send([0xb0, 90, 1, 2, 3]);
+}
+catch (e) {
+    console.log('expectedly caught error:', e);
+}
+
 function sendSomeNotes(channel, basePitch, velocity) {
     output.channel = channel || 0;
     for (var i = 0; i < 3; i++) {

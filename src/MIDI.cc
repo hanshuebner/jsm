@@ -142,7 +142,7 @@ class MIDIOutput
 public:
   MIDIOutput(int portId, int32_t latency) throw(JSException);
 
-  void send(const string& messageString,
+  void send(const vector<unsigned char>& message,
             PmTimestamp when = 0)
     throw(JSException);
 
@@ -579,43 +579,44 @@ MIDIOutput::MIDIOutput(int portId, int32_t latency)
 }
 
 void
-MIDIOutput::send(const string& messageString, PmTimestamp when)
+MIDIOutput::send(const vector<unsigned char>& message, PmTimestamp when)
   throw(JSException)
 {
-  istringstream is(messageString);
+  if (message.size() < 1) {
+    throw JSException("cannot send message without content");
+  }
 
-  unsigned int statusByte;
-  is >> hex >> statusByte;
+  unsigned int statusByte = message[0];
 
   if (statusByte == 0xf0) {
+
     // send sysex message
-    unsigned char buf[messageString.size()];    // allocate plenty of buffer
-    buf[0] = 0xf0;
-    int count = 1;
-    while (!is.eof()) {
-      unsigned byte;
-      is >> hex >> byte;
-      if (is.fail()) {
-        throw JSException("error decoding hex byte in sysex message");
-      }
-      buf[count++] = byte;
-    }
-    if (buf[count - 1] != 0xf7) {
+    int count = message.size();
+    if (message[count - 1] != 0xf7) {
       throw JSException("sysex message must be terminated by 0xf7");
     }
+    unsigned char buf[count];
+    for (int i = 0; i < count; i++) {
+      buf[i] = message[i];
+    }
     PmError e = Pm_WriteSysEx(_pmMidiStream, when, buf);
-
     if (e < 0) {
       throw JSException("could not send MIDI sysex message");
     }
+
   } else {
-
-    unsigned int data1;
-    is >> hex >> data1;
-    unsigned int data2;
-    is >> hex >> data2;
-
-    PmError e = Pm_WriteShort(_pmMidiStream, when, Pm_Message(statusByte, data1, data2));
+    unsigned char arg1 = 0;
+    unsigned char arg2 = 0;
+    switch (message.size()) {
+    case 3:
+      arg2 = message[2];
+    case 2:
+      arg1 = message[1];
+      break;
+    default:
+      throw JSException("unexpected message length");
+    }
+    PmError e = Pm_WriteShort(_pmMidiStream, when, Pm_Message(statusByte, message[1], message[2]));
 
     if (e < 0) {
       throw JSException("could not send MIDI message");
@@ -657,8 +658,11 @@ MIDIOutput::send(const Arguments& args)
 {
   HandleScope scope;
   MIDIOutput* midiOutput = ObjectWrap::Unwrap<MIDIOutput>(args.This());
-  string messageString = *String::Utf8Value(args[0]);
   PmTimestamp when = 0;
+
+  if (args.Length() < 1) {
+    return ThrowException(String::New("missing argument to MIDIOut::send"));
+  }
 
   if (args.Length() > 1) {
     if (!midiOutput->latency()) {
@@ -668,8 +672,32 @@ MIDIOutput::send(const Arguments& args)
     when = args[1]->Int32Value();
   }
 
+  vector<unsigned char> message;
+  if (args[0]->IsString()) {
+    string messageString = *String::Utf8Value(args[0]);
+    istringstream is(messageString);
+    while (!is.eof()) {
+      unsigned byte;
+      is >> hex >> byte;
+      if (is.fail()) {
+        throw JSException("error decoding hex byte in sysex message");
+      }
+      message.push_back(byte);
+    }
+  } else if (args[0]->IsArray()) {
+    Local<Array> messageArray = Local<Array>::Cast(args[0]);
+    for (unsigned i = 0; i < messageArray->Length(); i++) {
+      if (!messageArray->Get(i)->IsNumber()) {
+        throw JSException("unexpected array element in array to send, expecting only integers");
+      }
+      message.push_back(messageArray->Get(i)->Int32Value());
+    }
+  } else {
+    throw JSException("unexpected type for MIDI message argument");
+  }
+
   try {
-    midiOutput->send(messageString, when);
+    midiOutput->send(message, when);
     return Undefined();
   }
   catch (JSException& e) {
