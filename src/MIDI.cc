@@ -548,6 +548,7 @@ MIDIInput::Initialize(Handle<Object> target)
   HandleScope scope;
 
   Handle<FunctionTemplate> midiInputTemplate = FunctionTemplate::New(New);
+  midiInputTemplate->Inherit(EventEmitter::constructor_template);
   midiInputTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(midiInputTemplate, "close", MIDIStream::close);
