@@ -1,5 +1,5 @@
 
-var MIDI = require('./build/default/MIDI.node');
+var MIDI = require('MIDI');
 
 console.log('inputs: ', MIDI.inputPorts());
 console.log('outputs: ', MIDI.outputPorts());
@@ -9,12 +9,6 @@ var port = MIDI.outputPorts()[0];
 console.log('opening port "' + port + '"');
 
 var output = new MIDI.MIDIOutput(port, 1);
-console.log('prototype:', output.prototype);
-
-output.sendNote = function (note, velocity, time) {
-    this.send('9' + (this.channel || 0).toString(16) + ' ' + note.toString(16) + ' ' + (velocity || 0).toString(16),
-             time);
-}
 
 output.send('f0 00 01 02 f7');
 

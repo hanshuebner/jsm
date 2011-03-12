@@ -456,28 +456,21 @@ MIDIInput::readResultsToJSCallbackArguments(Local<Value> argv[])
     int i = 0;
     // xxx order?
     while (_sysexQueue.size()) {
-      ostringstream os;
-      for (SysexMessageBuffer::const_iterator j = _sysexQueue.front().begin();
-           j != _sysexQueue.front().end();
-           j++) {
-        if (os.tellp()) {
-          os << ' ';
-        }
-        os << hex << (unsigned) (*j);
+      const SysexMessageBuffer& message = _sysexQueue.front();
+      Local<Array> jsMessage = Array::New(message.size());
+      for (size_t j = 0; j < message.size(); j++) {
+        jsMessage->Set(j, v8::Integer::New(message[j]));
       }
-      string s = os.str();
-      events->Set(i++, String::New(s.c_str()));
+      events->Set(i++, jsMessage);
       _sysexQueue.pop();
     }
     while (_readQueue.size()) {
       PmMessage message = _readQueue.front().message;
-      ostringstream os;
-      os << hex
-         << Pm_MessageStatus(message)
-         << " " << Pm_MessageData1(message)
-         << " " << Pm_MessageData2(message);
-      string s = os.str();
-      events->Set(i++, String::New(s.c_str()));
+      Local<Array> jsMessage = Array::New(3);
+      jsMessage->Set(0, v8::Integer::New(Pm_MessageStatus(message)));
+      jsMessage->Set(1, v8::Integer::New(Pm_MessageData1(message)));
+      jsMessage->Set(2, v8::Integer::New(Pm_MessageData2(message)));
+      events->Set(i++, jsMessage);
       _readQueue.pop();
     }
     argv[0] = events;
@@ -589,7 +582,6 @@ void
 MIDIOutput::send(const string& messageString, PmTimestamp when)
   throw(JSException)
 {
-  cout << "send \"" << messageString << "\" at " << when << endl;
   istringstream is(messageString);
 
   unsigned int statusByte;

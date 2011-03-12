@@ -1,5 +1,5 @@
 
-var MIDI = require('./build/default/MIDI.node');
+var MIDI = require('MIDI');
 
 console.log('inputs: ', MIDI.inputPorts());
 console.log('outputs: ', MIDI.outputPorts());
@@ -21,6 +21,6 @@ function dumpReceivedMessage (messages, error) {
     }
 }
 
-midiInput.recv(dumpReceivedMessage);
+midiInput.recvText(dumpReceivedMessage);
 
 
