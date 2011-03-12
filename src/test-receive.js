@@ -17,7 +17,7 @@ function dumpReceivedMessage (messages, error) {
         console.log('error:', error);
     } else {
         console.log('messages:', messages);
-        midiInput.recv(dumpReceivedMessage);
+        midiInput.recvText(dumpReceivedMessage);
     }
 }
 
