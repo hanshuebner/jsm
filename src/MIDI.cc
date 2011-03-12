@@ -660,43 +660,43 @@ MIDIOutput::send(const Arguments& args)
   MIDIOutput* midiOutput = ObjectWrap::Unwrap<MIDIOutput>(args.This());
   PmTimestamp when = 0;
 
-  if (args.Length() < 1) {
-    return ThrowException(String::New("missing argument to MIDIOut::send"));
-  }
-
-  if (args.Length() > 1) {
-    if (!midiOutput->latency()) {
-      return ThrowException(String::New("can't delay message sending on MIDI output stream opened with zero latency"));
-    }
-
-    when = args[1]->Int32Value();
-  }
-
-  vector<unsigned char> message;
-  if (args[0]->IsString()) {
-    string messageString = *String::Utf8Value(args[0]);
-    istringstream is(messageString);
-    while (!is.eof()) {
-      unsigned byte;
-      is >> hex >> byte;
-      if (is.fail()) {
-        throw JSException("error decoding hex byte in sysex message");
-      }
-      message.push_back(byte);
-    }
-  } else if (args[0]->IsArray()) {
-    Local<Array> messageArray = Local<Array>::Cast(args[0]);
-    for (unsigned i = 0; i < messageArray->Length(); i++) {
-      if (!messageArray->Get(i)->IsNumber()) {
-        throw JSException("unexpected array element in array to send, expecting only integers");
-      }
-      message.push_back(messageArray->Get(i)->Int32Value());
-    }
-  } else {
-    throw JSException("unexpected type for MIDI message argument");
-  }
-
   try {
+    if (args.Length() < 1) {
+      throw JSException("missing argument to MIDIOut::send");
+    }
+
+    if (args.Length() > 1) {
+      if (!midiOutput->latency()) {
+        throw JSException("can't delay message sending on MIDI output stream opened with zero latency");
+      }
+
+      when = args[1]->Int32Value();
+    }
+
+    vector<unsigned char> message;
+    if (args[0]->IsString()) {
+      string messageString = *String::Utf8Value(args[0]);
+      istringstream is(messageString);
+      while (!is.eof()) {
+        unsigned byte;
+        is >> hex >> byte;
+        if (is.fail()) {
+          throw JSException("error decoding hex byte in sysex message");
+        }
+        message.push_back(byte);
+      }
+    } else if (args[0]->IsArray()) {
+      Local<Array> messageArray = Local<Array>::Cast(args[0]);
+      for (unsigned i = 0; i < messageArray->Length(); i++) {
+        if (!messageArray->Get(i)->IsNumber()) {
+          throw JSException("unexpected array element in array to send, expecting only integers");
+        }
+        message.push_back(messageArray->Get(i)->Int32Value());
+      }
+    } else {
+      throw JSException("unexpected type for MIDI message argument");
+    }
+
     midiOutput->send(message, when);
     return Undefined();
   }
