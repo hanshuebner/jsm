@@ -28,6 +28,13 @@ catch (e) {
     console.log('expectedly caught error:', e);
 }
 
+try {
+    output.send({foo: 1});
+}
+catch (e) {
+    console.log('expectedly caught error:', e);
+}
+
 function sendSomeNotes(channel, basePitch, velocity) {
     output.channel = channel || 0;
     for (var i = 0; i < 3; i++) {
