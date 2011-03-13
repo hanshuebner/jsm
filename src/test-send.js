@@ -35,6 +35,8 @@ catch (e) {
     console.log('expectedly caught error:', e);
 }
 
+output.send([0xb0, 1.0, 3.0]);
+
 function sendSomeNotes(channel, basePitch, velocity) {
     output.channel = channel || 0;
     for (var i = 0; i < 3; i++) {

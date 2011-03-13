@@ -79,7 +79,7 @@ public:
   MIDIInput(int portId) throw(JSException);
   virtual ~MIDIInput();
 
-  void listen(int32_t channels, int32_t filters) throw(JSException);
+  void setFilters(int32_t channels, int32_t filters) throw(JSException);
   static void pollAll(PtTimestamp timestamp, void* userData);
 
   // v8 interface
@@ -87,7 +87,7 @@ public:
   static void Initialize(Handle<Object> target);
 
   static Handle<Value> New(const Arguments& args);
-  static Handle<Value> listen(const Arguments& args);
+  static Handle<Value> setFilters(const Arguments& args);
   static Handle<Value> recv(const Arguments& args);
 
 private:
@@ -111,13 +111,14 @@ private:
     friend int MIDIInput::EIO_recvDone(eio_req* req);
 
   public:
-    ReceiveIOCB(MIDIInput* midiInput, Persistent<Function> callback)
-      : _midiInput(midiInput), _callback(callback) {}
+    ReceiveIOCB(MIDIInput* midiInput, Persistent<Object> this_, Persistent<Function> callback)
+      : _midiInput(midiInput), _this(this_), _callback(callback) {}
 
     enum { RECV_EVENTS = 16 };
 
   private:
     MIDIInput* _midiInput;
+    Persistent<Object> _this;
     Persistent<Function> _callback;
   };
 
@@ -273,8 +274,8 @@ MIDIInput::~MIDIInput()
 }
 
 void
-MIDIInput::listen(int32_t channels,
-                  int32_t filters)
+MIDIInput::setFilters(int32_t channels,
+                      int32_t filters)
   throw(JSException)
 {
   PmError e = Pm_SetChannelMask(_pmMidiStream, channels);
@@ -313,7 +314,7 @@ MIDIInput::New(const Arguments& args)
 }
 
 Handle<Value>
-MIDIInput::listen(const Arguments& args)
+MIDIInput::setFilters(const Arguments& args)
 {
   HandleScope scope;
 
@@ -328,12 +329,12 @@ MIDIInput::listen(const Arguments& args)
   case 0:
     break;
   default:
-      return ThrowException(String::New("too many arguments to MIDIInput listen"));
+      return ThrowException(String::New("too many arguments to MIDIInput setFilters"));
   }
 
   try {
     MIDIInput* midiInput = ObjectWrap::Unwrap<MIDIInput>(args.This());
-    midiInput->listen(channels, filters);
+    midiInput->setFilters(channels, filters);
     return Undefined();
   }
   catch (JSException& e) {
@@ -450,7 +451,7 @@ MIDIInput::readResultsToJSCallbackArguments(Local<Value> argv[])
   unique_lock<mutex> lock(_mutex);
 
   if (_error) {
-    argv[1] = Exception::Error(String::New("error receiving"));
+    argv[2] = Exception::Error(String::New("error receiving"));
   } else {
     Local<Array> events = Array::New(_sysexQueue.size() + _readQueue.size());
     int i = 0;
@@ -473,7 +474,7 @@ MIDIInput::readResultsToJSCallbackArguments(Local<Value> argv[])
       events->Set(i++, jsMessage);
       _readQueue.pop();
     }
-    argv[0] = events;
+    argv[1] = events;
   }
 }
 
@@ -497,9 +498,10 @@ MIDIInput::EIO_recvDone(eio_req* req)
   ReceiveIOCB* iocb = static_cast<ReceiveIOCB*>(req->data);
   ev_unref(EV_DEFAULT_UC);
 
-  Local<Value> argv[2];
-  argv[0] = *Undefined();
+  Local<Value> argv[3];
+  argv[0] = *iocb->_this;
   argv[1] = *Undefined();
+  argv[2] = *Undefined();
 
   iocb->_midiInput->readResultsToJSCallbackArguments(argv);
   iocb->_midiInput->Unref();
@@ -511,6 +513,7 @@ MIDIInput::EIO_recvDone(eio_req* req)
     FatalException(tryCatch);
   }
 
+  iocb->_this.Dispose();
   iocb->_callback.Dispose();
 
   delete iocb;
@@ -536,6 +539,7 @@ MIDIInput::recv(const Arguments& args)
              EIO_PRI_DEFAULT,
              EIO_recvDone,
              new ReceiveIOCB(midiInput,
+                             Persistent<Object>::New(Local<Object>::Cast(args.This())),
                              Persistent<Function>::New(Local<Function>::Cast(args[0]))));
   ev_ref(EV_DEFAULT_UC);
 
@@ -552,7 +556,7 @@ MIDIInput::Initialize(Handle<Object> target)
   midiInputTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(midiInputTemplate, "close", MIDIStream::close);
-  NODE_SET_PROTOTYPE_METHOD(midiInputTemplate, "listen", listen);
+  NODE_SET_PROTOTYPE_METHOD(midiInputTemplate, "setFilters", setFilters);
   NODE_SET_PROTOTYPE_METHOD(midiInputTemplate, "recv", recv);
 
   target->Set(String::NewSymbol("MIDIInput"), midiInputTemplate->GetFunction());
