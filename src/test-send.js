@@ -35,6 +35,27 @@ catch (e) {
     console.log('expectedly caught error:', e);
 }
 
+try {
+    output.sysex([]);
+}
+catch (e) {
+    console.log('expectedly caught error:', e);
+}
+
+try {
+    output.sysex([0xf0]);
+}
+catch (e) {
+    console.log('expectedly caught error:', e);
+}
+
+try {
+    output.sysex([0xf0, 1, 2, 3, 0xf7]);
+}
+catch (e) {
+    console.log('expectedly caught error:', e);
+}
+
 output.send([0xb0, 1.0, 3.0]);
 
 function sendSomeNotes(channel, basePitch, velocity) {
