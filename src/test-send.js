@@ -43,21 +43,25 @@ function sendSomeNotes(channel, basePitch, velocity) {
         var pitch = basePitch + i * 12;
         var period = 400;
 
-        output.sendNote(pitch, velocity, i * period);
-        output.sendNote(pitch+3, velocity, i * period);
-        output.sendNote(pitch+7, velocity, i * period);
-        output.sendNote(pitch+10, velocity, i * period);
+        output.noteOn(pitch, velocity, i * period);
+        output.noteOn(pitch+3, velocity, i * period);
+        output.noteOn(pitch+7, velocity, i * period);
+        output.noteOn(pitch+10, velocity, i * period);
 
-        output.sendNote(pitch, 0, i * period + 100);
-        output.sendNote(pitch+3, 0, i * period + 100);
-        output.sendNote(pitch+7, 0, i * period + 100);
-        output.sendNote(pitch+10, 0, i * period + 100);
+        output.noteOn(pitch, 0, i * period + 100);
+        output.noteOn(pitch+3, 0, i * period + 100);
+        output.noteOn(pitch+7, 0, i * period + 100);
+        output.noteOn(pitch+10, 0, i * period + 100);
 
         console.log('sent ' + i);
     }
 }
 
 sendSomeNotes(0, 64, 45);
+
+output.controlChange(20, 30);
+output.channel = 2;
+output.controlChange(20, 30);
 
 output.close();
 
