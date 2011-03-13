@@ -80,27 +80,30 @@ function sendSomeNotes(channel, basePitch, velocity) {
 
 sendSomeNotes(0, 64, 45);
 
+setTimeout(function () {
+    output.noteOn('C3', 127, 100);
+    output.noteOn('C3', 0, 1100);
+    output.noteOn('C4', 127, 1250);
+    output.noteOn('C4', 0, 1350);
+    output.noteOn('c3', 127, 1500);
+    output.noteOn('c3', 0, 1600);
+    output.noteOn('C5', 127, 1750);
+    output.noteOn('C5', 0, 1850);
+}, 1000);
+
+
 output.controlChange(20, 30);
 output.channel = 2;
 output.controlChange(20, 30);
 
-output.close();
-
-function loopTest () {
-    var x = 0;
-    while (++x) {
-        var output = new MIDI.MIDIOutput(port);
-        output.close();
-        console.log(x);
-    }
-}
-
 var stop;
 
-setTimeout(function () { stop = 1; }, 1000);
+setTimeout(function () { stop = 1; }, 3000);
 function isStopped() {
     if (!stop) {
         process.nextTick(isStopped);
+    } else {
+        output.close();
     }
 }
 
