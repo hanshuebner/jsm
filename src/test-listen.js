@@ -10,12 +10,16 @@ console.log('opening port "' + port + '"');
 
 var midiInput = new MIDI.MIDIInput(port);
 
+midiInput.listen();
+
 midiInput.on('sysex', function (message) {
     console.log('sysex:', MIDI.messageToString(message));
 });
-midiInput.on('controlChange', function (controller, value) {
-    console.log('controlChange: controller', controller, 'value', value);
+midiInput.on('timingClock', function () {
+    console.log('timingClock');
+});
+midiInput.on('controlChange', function (controller, value, channel) {
+    console.log('controlChange: controller', controller, 'value', value, 'channel', channel);
 });
 
-midiInput.listen();
 
