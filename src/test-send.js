@@ -96,6 +96,15 @@ output.controlChange(20, 30);
 output.channel = 2;
 output.controlChange(20, 30);
 
+output.nrpn(1024, 1024);
+output.nrpn(1024, 127, true);
+try {
+    output.nrpn(1024, 1024, true);
+}
+catch (e) {
+    console.log('caught expected error:', e);
+}
+
 var stop;
 
 setTimeout(function () { stop = 1; }, 3000);
