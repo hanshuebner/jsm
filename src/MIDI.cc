@@ -617,6 +617,7 @@ MIDIOutput::send(const vector<unsigned char>& message, PmTimestamp when)
       arg2 = message[2];
     case 2:
       arg1 = message[1];
+    case 1:
       break;
     default:
       throw JSException("unexpected message length");
