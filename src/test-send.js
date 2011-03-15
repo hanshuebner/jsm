@@ -59,7 +59,7 @@ catch (e) {
 output.send([0xb0, 1.0, 3.0]);
 
 function sendSomeNotes(channel, basePitch, velocity) {
-    output.channel = channel || 0;
+    output.channel = channel;
     for (var i = 0; i < 3; i++) {
         var pitch = basePitch + i * 12;
         var period = 400;
@@ -78,7 +78,7 @@ function sendSomeNotes(channel, basePitch, velocity) {
     }
 }
 
-sendSomeNotes(0, 64, 45);
+sendSomeNotes(1, 64, 45);
 
 setTimeout(function () {
     output.noteOn('C3', 127, 100);
@@ -95,6 +95,15 @@ setTimeout(function () {
 output.controlChange(20, 30);
 output.channel = 2;
 output.controlChange(20, 30);
+
+output.nrpn(1024, 1024);
+output.nrpn(1024, 127, true);
+try {
+    output.nrpn(1024, 1024, true);
+}
+catch (e) {
+    console.log('caught expected error:', e);
+}
 
 var stop;
 
