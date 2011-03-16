@@ -3,12 +3,32 @@
     <title>BCR2000 Configuration</title>
     <script type="text/javascript" src="lib/underscore.js"></script>
     <script type="text/javascript" src="lib/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="lib/jquery-ui-1.8.10.custom.min.js"></script>
     <script type="text/javascript" src="lib/MochiKit/MochiKit.js"></script>
     <script type="text/javascript" src="bcr2000.js"></script>
+    <script type="text/javascript">exports = {}</script>
+    <script type="text/javascript" src="../src/node_modules/tetra-defs.js"></script>
     <link type="text/css" href="bcr2000.css" rel="stylesheet" />
+    <link type="text/css" href="lib/jquery-ui-1.8.10.custom.css" rel="stylesheet" />
   </head>
   <body>
-    <form onsubmit="return false" action="#" id="mainform">
-    </form>
+    <div id="main">
+      <form id="bcr" onsubmit="return false" action="#">
+      </form>
+      <form id="control" onsubmit="return false" action="#">
+        <table>
+          <tr>
+            <td>Parameter</td>
+            <td><select id="parameter-name-list"></select></td>
+          </tr>
+          <tr>
+            <td colspan="2">BCL</td>
+          </tr>
+          <tr>
+            <td colspan="2"><textarea id="bcl" rows="5"></textarea></td>
+          </tr>
+        </table>
+      </form>
+    </div>
   </body>
 </html>
