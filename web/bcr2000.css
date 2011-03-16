@@ -1,0 +1,42 @@
+form {
+    position: relative;
+}
+
+button {
+    position: absolute;
+}
+
+button.encoder {
+    width: 60px;
+    height: 50px;
+}
+
+button.button {
+    width: 60px;
+    height: 20px;
+}
+
+#encoder1, #button33, #button41, #encoder33, #encoder41, #encoder49 { left: 10px; }
+#encoder2, #button34, #button42, #encoder34, #encoder42, #encoder50 { left: 80px; }
+#encoder3, #button35, #button43, #encoder35, #encoder43, #encoder51 { left: 150px; }
+#encoder4, #button36, #button44, #encoder36, #encoder44, #encoder52 { left: 220px; }
+#encoder5, #button37, #button45, #encoder37, #encoder45, #encoder53 { left: 290px; }
+#encoder6, #button38, #button46, #encoder38, #encoder46, #encoder54 { left: 360px; }
+#encoder7, #button39, #button47, #encoder39, #encoder47, #encoder55 { left: 430px; }
+#encoder8, #button40, #button48, #encoder40, #encoder48, #encoder56 { left: 430px; }
+
+#button49, #button51, #button63, #button53, #button55 { left: 520; }
+#button50, #button52, #button64, #button54, #button56 { left: 590; }
+
+#encoder1, #encoder2, #encoder3, #encoder4, #encoder5, #encoder6, #encoder7, #encoder8 { top: 10px; }
+#button33, #button34, #button35, #button36, #button37, #button38, #button39, #button40 { top: 70px; }
+#button41, #button42, #button43, #button44, #button45, #button46, #button47, #button48 { top: 100px; }
+#encoder33, #encoder34, #encoder35, #encoder36, #encoder37, #encoder38, #encoder39, #encoder40 { top: 130px; }
+#encoder41, #encoder42, #encoder43, #encoder44, #encoder45, #encoder46, #encoder47, #encoder48 { top: 190px; }
+#encoder49, #encoder50, #encoder51, #encoder52, #encoder53, #encoder54, #encoder55, #encoder56 { top: 250px; }
+
+#button53, #button54 { top: 150px; }
+#button55, #button56 { top: 180px; }
+#button63, #button64 { top: 215px; }
+#button49, #button50 { top: 250px; }
+#button51, #button52 { top: 280px; }
