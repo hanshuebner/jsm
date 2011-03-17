@@ -4,14 +4,19 @@ $(document).ready(function () {
     var TetraDefs = exports;                                // for now
     var form = $('#bcr');
 
+    function makeControlAttributes(type, number) {
+        return { 'control-type': type,
+                 'control-number': number,
+                 'class': type,
+                 id: (type + number) };
+    }
+
     function makeEncoder(id) {
-        var id = 'encoder' + id;
-        this.append(BUTTON({ id: id, 'class': 'encoder' }, ''));
+        this.append(BUTTON(makeControlAttributes('encoder', id), ''));
     }
 
     function makeButton(id) {
-        var id = 'button' + id;
-        this.append(BUTTON({ id: id, 'class': 'button' }, ''));
+        this.append(BUTTON(makeControlAttributes('button', id), ''));
     }
 
     function br(elem) {
@@ -33,25 +38,56 @@ $(document).ready(function () {
 
     document.assignments = {};
 
+    function makeBcl(control, parameter) {
+        return "$" + $(control).attr('control-type') + ' ' + $(control).attr('control-number') + "\n"
+            + '  .easypar NRPN ' + parameter.index + ' 1 ' + (parameter.min || 0) + ' ' + parameter.max + ' absolute/14' + "\n"
+            + '  .showvalue on' + "\n"
+            + '  .mode 1dot' + "\n"
+            + '  .resolution 10 50 100 500' + "\n";
+    }
+
     function editParameter () {
         if (document.editedControl != this) {
+
             $(document.editedControl).removeClass('selected');
             $(this).addClass('selected');
-            var assignedToParameter = document.assignments[this.id];
-            $('#parameter-name-list')
-                .val(assignedToParameter ? assignedToParameter.index : '<not assigned>');
+
+            $('#control-type').html($(this).attr('control-type'));
+            $('#control-number').html($(this).attr('control-number'));
+
+            var assignment = document.assignments[this.id];
+            if (assignment) {
+                $('#parameter-name-list')
+                    .val(assignment.parameter.index);
+                $('#bcl')
+                    .val(assignment.bcl);
+            } else {
+                $('#parameter-name-list')
+                    .val('<not assigned>');
+                $('#bcl')
+                    .val('');
+            }
             document.editedControl = this;
         }
-        $('#control-dialog').dialog('open');
     }
 
     function saveParameter () {
-        var id = document.editedControl.id;
-        var parameter = TetraDefs.parameterDefinitions[$(this).val()];
-        document.assignments[id] = parameter;
-        $('#' + id)
-            .empty()
-            .append(DIV(null, parameter.name));
+        var control = document.editedControl;
+        if (control) {
+            var type = $(control).attr('control-type');
+            var number = $(control).attr('control-number');
+            var id = control.id;
+            var parameter = TetraDefs.parameterDefinitions[$(this).val()];
+            var bcl = makeBcl(control, parameter);
+            document.assignments[id] = {
+                parameter: parameter,
+                bcl: bcl
+            };
+            $('#' + id)
+                .empty()
+                .append(DIV(null, parameter.name));
+            $('#bcl').val(bcl);
+        }
     }
 
 

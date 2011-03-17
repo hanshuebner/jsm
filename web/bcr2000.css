@@ -1,13 +1,23 @@
+html {
+    font-family: "Lucida Sans", "Lucida Grande", Lucida, sans-serif;
+}
+
 #main {
-    width: 110ex;
-    height: 22em;
+    width: 107ex;
+    height: 21.5em;
     background-color: #eee;
 }
 
 #control {
     float: right;
+    width: 40ex;
     background-color: #ddd;
     height: 100%;
+}
+
+#control table {
+    width: 100%;
+    font-size: 80%;
 }
 
 #bcl {
