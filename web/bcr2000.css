@@ -24,6 +24,12 @@ html {
     width: 100%;
 }
 
+#bcl .modified {
+    background-color: #fcc;
+}
+
+//
+
 #bcr {
     position: relative;
 }

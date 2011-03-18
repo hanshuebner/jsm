@@ -20,7 +20,7 @@ function decodeOneMessage(buf) {
         throw "not a Behringer sysex message";
     }
     if (buf[6] == 0x20) {
-        process.stdout.write(((buf[7] << 7) + buf[8]).toString() + ' ')
+//        process.stdout.write(((buf[7] << 7) + buf[8]).toString() + ' ')
         process.stdout.write(buf.slice(9, buf.length));
         process.stdout.write("\n");
     }

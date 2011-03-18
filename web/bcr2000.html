@@ -19,8 +19,12 @@
       <form id="control" onsubmit="return false" action="#">
         <table>
           <tr>
-            <th id="control-type">&nbsp;</th>
-            <th id="control-number">&nbsp;</th>
+            <th id="controlType">&nbsp;</th>
+            <th id="controlNumber">&nbsp;</th>
+          </tr>
+          <tr>
+            <td>Name</td>
+            <td><input id="controlName"/></td>
           </tr>
           <tr>
             <td>Parameter</td>
@@ -30,7 +34,13 @@
             <td colspan="2">BCL</td>
           </tr>
           <tr>
-            <td colspan="2"><textarea id="bcl" rows="7" readonly="readonly"></textarea></td>
+            <td colspan="2"><textarea id="bcl" rows="7"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <button id="revert" disabled="disabled">Revert</button>
+              <button id="save" disabled="disabled">Save</button>
+            </td>
           </tr>
         </table>
       </form>
