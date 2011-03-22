@@ -1,21 +1,20 @@
 
 var MIDI = require('MIDI');
 
-console.log(MIDI);
-
-var port = MIDI.inputPorts()[0];
+var port = process.env.MIDI_INPUT || MIDI.inputPorts()[0];
 
 console.log('opening port "' + port + '"');
 
 var midiInput = new MIDI.MIDIInput(port);
 
-midiInput.listen();
-
-midiInput.on('nrpn', function (nrpn, value) {
-    console.log('nrpn', nrpn, 'value', value);
+midiInput.on('nrpn14', function (nrpn, value, channel) {
+    console.log('nrpn14', nrpn, 'value', value, 'channel', channel);
 });
-midiInput.on('nrpnMsb', function (nrpn, value) {
-    console.log('nrpnMsb', nrpn, 'value', value);
-});
-
-process.stdin.resume();
+try {
+    midiInput.on('nrpn7', function (nrpn, value, channel) {
+        console.log('nrpn7', nrpn, 'value', value, 'channel', channel);
+    });
+}
+catch (e) {
+    console.log("caught expected error:", e);
+}

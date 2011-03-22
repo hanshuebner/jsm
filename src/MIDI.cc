@@ -294,6 +294,10 @@ MIDIInput::setFilters(int32_t channels,
 Handle<Value>
 MIDIInput::New(const Arguments& args)
 {
+  if (!args.IsConstructCall()) {
+    return ThrowException(String::New("MIDIInput function can only be used as a constructor"));
+  }
+
   HandleScope scope;
 
   string portName = *String::Utf8Value(args[0]);
@@ -306,6 +310,16 @@ MIDIInput::New(const Arguments& args)
   try {
     MIDIInput* midiInput = new MIDIInput(portId);
     midiInput->Wrap(args.This());
+
+    static Persistent<String> init_psymbol = NODE_PSYMBOL("init");
+
+    Local<Value> init = args.This()->Get(init_psymbol);
+
+    if (!init->IsFunction()) {
+      return ThrowException(String::New("MIDIInput.init function not found"));
+    }
+    Local<Function>::Cast(init)->Call(args.This(), 0, 0);
+    
     return args.This();
   }
   catch (JSException& e) {
@@ -635,6 +649,9 @@ MIDIOutput::send(const vector<unsigned char>& message, PmTimestamp when)
 Handle<Value>
 MIDIOutput::New(const Arguments& args)
 {
+  if (!args.IsConstructCall()) {
+    return ThrowException(String::New("MIDIOutput function can only be used as a constructor"));
+  }
   HandleScope scope;
 
   string portName = *String::Utf8Value(args[0]);
@@ -672,11 +689,13 @@ MIDIOutput::send(const Arguments& args)
     }
 
     if (args.Length() > 1) {
-      if (!midiOutput->latency()) {
+      if (!midiOutput->latency() && (args[1] != Undefined())) {
         throw JSException("can't delay message sending on MIDI output stream opened with zero latency");
       }
 
-      when = args[1]->Int32Value();
+      if (args[1] != Undefined()) {
+        when = args[1]->Int32Value();
+      }
     }
 
     vector<unsigned char> message;

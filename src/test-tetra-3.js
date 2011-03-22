@@ -5,8 +5,6 @@ var output = new MIDI.MIDIOutput('DSI Tetra');
 var input = new MIDI.MIDIInput('DSI Tetra');
 var synth = new MIDI.MIDIOutput('Absynth 5 Virtual Input', 1);
 
-input.listen();
-
 input.on('nrpn', function (parameter, value, channel) {
     console.log('parameter', parameter, 'value', value, 'channel', channel);
 });

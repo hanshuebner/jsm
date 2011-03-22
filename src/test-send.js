@@ -1,10 +1,9 @@
 
 var MIDI = require('MIDI');
 
-console.log('inputs: ', MIDI.inputPorts());
 console.log('outputs: ', MIDI.outputPorts());
 
-var port = MIDI.outputPorts()[0];
+var port = process.env.MIDI_OUTPUT || MIDI.outputPorts()[0];
 
 console.log('opening port "' + port + '"');
 
@@ -59,7 +58,7 @@ catch (e) {
 output.send([0xb0, 1.0, 3.0]);
 
 function sendSomeNotes(channel, basePitch, velocity) {
-    output.channel = channel;
+    output.channel(channel);
     for (var i = 0; i < 3; i++) {
         var pitch = basePitch + i * 12;
         var period = 400;
@@ -93,13 +92,13 @@ setTimeout(function () {
 
 
 output.controlChange(20, 30);
-output.channel = 2;
+output.channel(2);
 output.controlChange(20, 30);
 
-output.nrpn(1024, 1024);
-output.nrpn(1024, 127, true);
+output.nrpn14(1024, 1024);
+output.nrpn7(1024, 127);
 try {
-    output.nrpn(1024, 1024, true);
+    output.nrpn7(1024, 1024);
 }
 catch (e) {
     console.log('caught expected error:', e);
