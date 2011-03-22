@@ -7,6 +7,11 @@ Applications are notified by incoming messages by the way of events
 that are delivered to callbacks, using the standard node event
 handling idiom.
 
+All event handlers are called with the message timestamp as last
+argument.  The message timestamp indicates the point in time when the
+message was received, measured in milliseconds since the start of the
+program.
+
 ### MIDIInput(portName)
 
 Return a `MIDIInput` object opened to the port with the given
@@ -17,7 +22,7 @@ Return a `MIDIInput` object opened to the port with the given
 ### Event: 'nrpn7'
 ### Event: 'nrpn14'
 
-`function (parameterNumber, value, channel) { }`
+`function (parameterNumber, value, channel, time) { }`
 
 Emitted when an NRPN control change has been received.  NRPNs are a
 sort of extended parameters that allow for a larger number of
@@ -54,37 +59,37 @@ parsed as integer values.
 
 ### Event: 'noteOn'
 
-`function (pitch, velocity, channel) { }`
+`function (pitch, velocity, channel, time) { }`
 
 ### Event: 'noteOff'
 
-`function (pitch, velocity, channel) { }`
+`function (pitch, velocity, channel, time) { }`
 
 ### Event: 'polyphonicKeyPressure'
 
-`function (pitch, velocity, channel) { }`
+`function (pitch, velocity, channel, time) { }`
 
 ### Event: 'controlChange'
 
-`function (controllerNumber, controllerValue, channel) { }`
+`function (controllerNumber, controllerValue, channel, time) { }`
 
 ### Event: 'programChange'
 
-`function (programNumber, channel) { }`
+`function (programNumber, channel, time) { }`
 
 ### Event: 'channelPressure'
 
-`function (pressureValue, channel) { }`
+`function (pressureValue, channel, time) { }`
 
 ### Event: 'pitchWheelChange'
 
-`function (valueLsb, valueMsb, channel) { }`
+`function (valueLsb, valueMsb, channel, time) { }`
 
 ## System Common Messages
 
 ### Event: 'sysex'
 
-`function (argument) { }`
+`function (message, time) { }`
 
 Emitted when a system exclusive message has been received.  The
 message is passed as an array of numbers, including the 0xf0 and 0xf7
@@ -92,55 +97,56 @@ message delimiters.
 
 ### Event: 'midiTimeCode'
 
-`function (argument) { }`
+`function (argument, time) { }`
 
 ### Event: 'songPositionPointer'
 
-`function (positionLsb, positionMsb) { }`
+`function (positionLsb, positionMsb, time) { }`
 
 ### Event: 'songSelect'
 
-`function (songNumber) { }`
+`function (songNumber, time) { }`
 
 ### Event: 'tuneRequest'
 
-`function () { }`
+`function (time) { }`
 
 ## System Real-Time Messages
 
 ### Event: 'timingClock'
 
-`function () { }`
+`function (time) { }`
 
 ### Event: 'tick'
 
-`function () { }`
+`function (time) { }`
 
 ### Event: 'start'
 
-`function () { }`
+`function (time) { }`
 
 ### Event: 'stop'
 
-`function () { }`
+`function (time) { }`
 
 ### Event: 'continue'
 
-`function () { }`
+`function (time) { }`
 
 ### Event: 'activeSensing'
 
-`function () { }`
+`function (time) { }`
 
 ### Event: 'reset'
 
-`function () { }`
+`function (time) { }`
 
 ### MIDIOutput.channels(argument)
 
 Establish the channel mask for received messages.  By default,
 messages for all channels are received.
 
-The `argument` may be either the string 'all' to listen to all
-channels, a single channel number or an array of channel numbers to
-listen to.  Channel numbers are one-based.
+The `argument` may be either a single channel number or an array of
+channel numbers to listen to.  Channel numbers are one-based.  Channel
+number zero indicates that messages for all channels should be
+listened for.

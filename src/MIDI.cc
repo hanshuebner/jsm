@@ -127,11 +127,14 @@ private:
 
   PmError _error;
   queue<PmEvent> _readQueue;
-  typedef vector<unsigned char> SysexMessageBuffer;
+  struct SysexMessageBuffer {
+    vector<unsigned char> data;
+    PmTimestamp timestamp;
+  };
   queue<SysexMessageBuffer> _sysexQueue;
   SysexMessageBuffer _currentSysexMessage;
 
-  bool inSysexMessage() { return _currentSysexMessage.size(); }
+  bool inSysexMessage() { return _currentSysexMessage.data.size(); }
 
   void unpackSysexMessage(PmEvent message);
 };
@@ -387,9 +390,10 @@ MIDIInput::unpackSysexMessage(PmEvent event)
     unsigned char b = buf & 0xff;
     buf >>= 8;
     if (b == MIDI::SYSEX_END) {
-      _currentSysexMessage.push_back(b);
+      _currentSysexMessage.data.push_back(b);
+      _currentSysexMessage.timestamp = event.timestamp;
       _sysexQueue.push(_currentSysexMessage);
-      _currentSysexMessage.clear();
+      _currentSysexMessage.data.clear();
       break;
     } else if (MIDI::IS_REALTIME(b)) {
       PmEvent rtEvent;
@@ -397,23 +401,23 @@ MIDIInput::unpackSysexMessage(PmEvent event)
       rtEvent.timestamp = event.timestamp;
       _readQueue.push(rtEvent);
     } else if ((b & 0x80)
-               && (_currentSysexMessage.size() > 1
+               && (_currentSysexMessage.data.size() > 1
                    || (b != MIDI::SYSEX_START))) {
       // We're receiving some non-realtime status while receiving a
       // sysex message.  Assume that this is not an error, but flush
       // the current sysex message (i.e. the user may have unplugged
       // the cable while a sysex message was being transferred)
-      _currentSysexMessage.clear();
+      _currentSysexMessage.data.clear();
       // Unfortunately, portmidi does not resync itself when it
       // receives a new message inside a sysex message.  We can cope
       // with another sysex message, but fail for others.
       if (b == MIDI::SYSEX_START) {
-        _currentSysexMessage.push_back(b);
+        _currentSysexMessage.data.push_back(b);
       } else {
         break;
       }
     } else {
-      _currentSysexMessage.push_back(b);
+      _currentSysexMessage.data.push_back(b);
     }
   }
 }
@@ -472,19 +476,21 @@ MIDIInput::readResultsToJSCallbackArguments(Local<Value> argv[])
     // xxx order?
     while (_sysexQueue.size()) {
       const SysexMessageBuffer& message = _sysexQueue.front();
-      Local<Array> jsMessage = Array::New(message.size());
-      for (size_t j = 0; j < message.size(); j++) {
-        jsMessage->Set(j, v8::Integer::New(message[j]));
+      Local<Array> jsMessage = Array::New(message.data.size() + 1);
+      jsMessage->Set(0, v8::Integer::New(message.timestamp));
+      for (size_t j = 0; j < message.data.size(); j++) {
+        jsMessage->Set(j + 1, v8::Integer::New(message.data[j]));
       }
       events->Set(i++, jsMessage);
       _sysexQueue.pop();
     }
     while (_readQueue.size()) {
       PmMessage message = _readQueue.front().message;
-      Local<Array> jsMessage = Array::New(3);
-      jsMessage->Set(0, v8::Integer::New(Pm_MessageStatus(message)));
-      jsMessage->Set(1, v8::Integer::New(Pm_MessageData1(message)));
-      jsMessage->Set(2, v8::Integer::New(Pm_MessageData2(message)));
+      Local<Array> jsMessage = Array::New(4);
+      jsMessage->Set(0, v8::Integer::New(_readQueue.front().timestamp));
+      jsMessage->Set(1, v8::Integer::New(Pm_MessageStatus(message)));
+      jsMessage->Set(2, v8::Integer::New(Pm_MessageData1(message)));
+      jsMessage->Set(3, v8::Integer::New(Pm_MessageData2(message)));
       events->Set(i++, jsMessage);
       _readQueue.pop();
     }
