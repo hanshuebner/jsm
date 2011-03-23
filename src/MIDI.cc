@@ -92,6 +92,7 @@ private:
   static Handle<Value> getPorts(PortDirection direction);
   static Handle<Value> inputPorts(const Arguments& args);
   static Handle<Value> outputPorts(const Arguments& args);
+  static Handle<Value> currentTime(const Arguments& args);
 };
 
 class MIDIStream
@@ -268,12 +269,19 @@ MIDI::outputPorts(const Arguments& args)
   return getPorts(OUTPUT);
 }
 
+Handle<Value>
+MIDI::currentTime(const Arguments& args)
+{
+  return v8::Integer::New(Pt_Time());
+}
+
 void
 MIDI::Initialize(Handle<Object> target) {
   HandleScope scope;
 
   target->Set(String::NewSymbol("inputPorts"), FunctionTemplate::New(inputPorts)->GetFunction());
   target->Set(String::NewSymbol("outputPorts"), FunctionTemplate::New(outputPorts)->GetFunction());
+  target->Set(String::NewSymbol("currentTime"), FunctionTemplate::New(currentTime)->GetFunction());
 
   MIDIInput::Initialize(target);
   MIDIOutput::Initialize(target);
