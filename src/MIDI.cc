@@ -150,8 +150,6 @@ private:
     ReceiveIOCB(MIDIInput* midiInput, Persistent<Object> this_, Persistent<Function> callback)
       : _midiInput(midiInput), _this(this_), _callback(callback) {}
 
-    enum { RECV_EVENTS = 16 };
-
   private:
     MIDIInput* _midiInput;
     Persistent<Object> _this;
