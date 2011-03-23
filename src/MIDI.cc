@@ -7,6 +7,8 @@
 #include <queue>
 #include <vector>
 
+#include <stdlib.h>
+
 #include <v8.h>
 #include <node.h>
 #include <node_events.h>
@@ -26,12 +28,46 @@ class JSException
 {
 public:
   JSException(const string& text) : _message(text) {};
-  const string& message() const { return _message; }
-  Handle<Value> asV8Exception() const { return ThrowException(String::New(message().c_str())); }
+  virtual const string message() const { return _message; }
+  virtual Handle<Value> asV8Exception() const { return ThrowException(String::New(message().c_str())); }
 
-private:
+protected:
   string _message;
 };
+
+class PortMidiJSException
+  : public JSException
+{
+public:
+  PortMidiJSException(const string& text, PmError pmError);
+
+  virtual const string message() const;
+
+private:
+  PmError _pmError;
+  string _hostError;
+};
+
+PortMidiJSException::PortMidiJSException(const string& text, PmError pmError)
+  : JSException(text),
+    _pmError(pmError)
+{
+  if (pmError == pmHostError) {
+    char buf[PM_HOST_ERROR_MSG_LEN];
+    Pm_GetHostErrorText(buf, sizeof buf);
+    _hostError = buf;
+  }
+}
+
+const string
+PortMidiJSException::message() const
+{
+  if (_pmError == pmHostError) {
+    return _message + ": (host error) " + _hostError;
+  } else {
+    return _message + ": " + Pm_GetErrorText(_pmError);
+  }
+}
 
 class MIDI
 {
@@ -42,7 +78,7 @@ public:
 
   // Get id of MIDI port with the given name.  Returns the ID or -1 if
   // no MIDI device with the given name is found
-  static int getPortIndex(PortDirection direction, string name);
+  static int getPortIndex(PortDirection direction, Handle<Value> name);
 
   enum {
     SYSEX_START = 0xf0,
@@ -125,7 +161,7 @@ private:
   void waitForData(ReceiveIOCB* iocb);
   bool dataAvailable() const { return _sysexQueue.size() || _readQueue.size(); }
 
-  PmError _error;
+  PortMidiJSException* _error;
   queue<PmEvent> _readQueue;
   struct SysexMessageBuffer {
     vector<unsigned char> data;
@@ -169,16 +205,41 @@ public:
 // //////////////////////////////////////////////////////////////////
 
 int
-MIDI::getPortIndex(PortDirection direction, string name)
+MIDI::getPortIndex(PortDirection direction, Handle<Value> nameArg)
 {
+  string portName;
+
+  const char* environmentVariableName = (direction == INPUT) ? "MIDI_INPUT" : "MIDI_OUTPUT";
+  const char* portNameFromEnvironment = getenv(environmentVariableName);
+  Handle<Value> ports = getPorts(direction);
+  bool useFirst = false;
+
+  if (nameArg != Undefined()) {
+    portName = *String::Utf8Value(nameArg);
+  } else if (portNameFromEnvironment) {
+    portName = portNameFromEnvironment;
+  } else {
+    useFirst = true;
+  }
+
   for (int id = 0; id < Pm_CountDevices(); id++) {
     const PmDeviceInfo* deviceInfo = Pm_GetDeviceInfo(id);
     if (((direction == INPUT) ^ deviceInfo->output)
-        && (name == deviceInfo->name)) {
+        && (useFirst || (portName == deviceInfo->name))) {
       return id;
     }
   }
-  return -1;
+
+  const char* directionName = (direction == INPUT) ? "input" : "output";;
+  if (useFirst) {
+    throw JSException((string) "no MIDI " + directionName + " ports");
+  } else {
+    if (nameArg == Undefined()) {
+      throw JSException((string) "invalid MIDI " + directionName + " port name \"" + portName + "\" in " + environmentVariableName + " environment variable");
+    } else {
+      throw JSException((string) "invalid MIDI " + directionName + " port name \"" + portName + "\"");
+    }
+  }
 }
 
 // v8 interface
@@ -263,7 +324,7 @@ MIDIInput::MIDIInput(int portId)
                            0);                 // time info
 
   if (e < 0) {
-    throw JSException("could not open MIDI input port");
+    throw PortMidiJSException("could not open MIDI input port", e);
   }
 
   unique_lock<mutex> lock(_receiversMutex);
@@ -283,12 +344,12 @@ MIDIInput::setFilters(int32_t channels,
 {
   PmError e = Pm_SetChannelMask(_pmMidiStream, channels);
   if (e < 0) {
-    throw JSException("cannot set MIDI channels");
+    throw PortMidiJSException("could not set MIDI channels", e);
   }
 
   e = Pm_SetFilter(_pmMidiStream, filters);
   if (e < 0) {
-    throw JSException("cannot set MIDI filter");
+    throw PortMidiJSException("could not set MIDI filter", e);
   }
 }
 
@@ -303,14 +364,9 @@ MIDIInput::New(const Arguments& args)
 
   HandleScope scope;
 
-  string portName = *String::Utf8Value(args[0]);
-  int portId = MIDI::getPortIndex(MIDI::INPUT, portName);
-  if (portId < 0) {
-    string errorMessage = (string) "Invalid MIDI input port name: " + portName;
-    return ThrowException(String::New(errorMessage.c_str()));
-  }
-
   try {
+    int portId = MIDI::getPortIndex(MIDI::INPUT, args[0]);
+
     MIDIInput* midiInput = new MIDIInput(portId);
     midiInput->Wrap(args.This());
 
@@ -325,7 +381,7 @@ MIDIInput::New(const Arguments& args)
     
     return args.This();
   }
-  catch (JSException& e) {
+  catch (const JSException& e) {
     return e.asV8Exception();
   }
 }
@@ -354,7 +410,7 @@ MIDIInput::setFilters(const Arguments& args)
     midiInput->setFilters(channels, filters);
     return Undefined();
   }
-  catch (JSException& e) {
+  catch (const JSException& e) {
     return e.asV8Exception();
   }
 }
@@ -434,7 +490,7 @@ MIDIInput::waitForData(ReceiveIOCB* iocb)
   PmEvent events[RECV_EVENTS];
   int rc = Pm_Read(_pmMidiStream, events, RECV_EVENTS);
   if (rc < 0) {
-    _error = (PmError) rc;
+    _error = new PortMidiJSException("error receiving MIDI data", (PmError) rc);
     while (!_readQueue.empty()) {
       _readQueue.pop();
     }
@@ -469,7 +525,9 @@ MIDIInput::readResultsToJSCallbackArguments(Local<Value> argv[])
   unique_lock<mutex> lock(_mutex);
 
   if (_error) {
-    argv[2] = Exception::Error(String::New("error receiving"));
+    argv[2] = Exception::Error(String::New(_error->message().c_str()));
+    delete _error;
+    _error = 0;
   } else {
     Local<Array> events = Array::New(_sysexQueue.size() + _readQueue.size());
     int i = 0;
@@ -553,7 +611,7 @@ MIDIInput::recv(const Arguments& args)
 
   MIDIInput* midiInput = ObjectWrap::Unwrap<MIDIInput>(args.This());
   midiInput->Ref();
-  midiInput->_error = pmNoError;
+  midiInput->_error = 0;
 
   eio_custom(EIO_recv,
              EIO_PRI_DEFAULT,
@@ -599,7 +657,7 @@ MIDIOutput::MIDIOutput(int portId, int32_t latency)
                             latency);           // latency
 
   if (e < 0) {
-    throw JSException("could not open MIDI output port");
+    throw PortMidiJSException("could not open MIDI output port", e);
   }
 }
 
@@ -626,7 +684,7 @@ MIDIOutput::send(const vector<unsigned char>& message, PmTimestamp when)
     }
     PmError e = Pm_WriteSysEx(_pmMidiStream, when, buf);
     if (e < 0) {
-      throw JSException("could not send MIDI sysex message");
+      throw PortMidiJSException("could not send MIDI sysex message", e);
     }
 
   } else {
@@ -645,7 +703,7 @@ MIDIOutput::send(const vector<unsigned char>& message, PmTimestamp when)
     PmError e = Pm_WriteShort(_pmMidiStream, when, Pm_Message(statusByte, message[1], message[2]));
 
     if (e < 0) {
-      throw JSException("could not send MIDI message");
+      throw PortMidiJSException("could not send MIDI message", e);
     }
   }
 }
@@ -660,24 +718,19 @@ MIDIOutput::New(const Arguments& args)
   }
   HandleScope scope;
 
-  string portName = *String::Utf8Value(args[0]);
-  int portId = MIDI::getPortIndex(MIDI::OUTPUT, portName);
-  if (portId < 0) {
-    string errorMessage = (string) "Invalid MIDI output port name: " + portName;
-    return ThrowException(String::New(errorMessage.c_str()));
-  }
-
-  int32_t latency = 0;
-  if (args.Length() > 1) {
-    latency = args[1]->Int32Value();
-  }
-
   try {
+    int portId = MIDI::getPortIndex(MIDI::OUTPUT, args[0]);
+
+    int32_t latency = 0;
+    if (args.Length() > 1) {
+      latency = args[1]->Int32Value();
+    }
+
     MIDIOutput* midiOutput = new MIDIOutput(portId, latency);
     midiOutput->Wrap(args.This());
     return args.This();
   }
-  catch (JSException& e) {
+  catch (const JSException& e) {
     return e.asV8Exception();
   }
 }
@@ -731,7 +784,7 @@ MIDIOutput::send(const Arguments& args)
     midiOutput->send(message, when);
     return Undefined();
   }
-  catch (JSException& e) {
+  catch (const JSException& e) {
     return e.asV8Exception();
   }
 }
