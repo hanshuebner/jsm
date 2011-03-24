@@ -245,8 +245,15 @@ public:
 
   int32_t latency() const { return _latency; }
 
+  // Called periodically to unref the default libev queue when all
+  // delayed messages have been sent.
+  static void checkScheduledSends(PmTimestamp timestamp);
+
 private:
   int32_t _latency;
+
+  static mutex _lastScheduledSendLock;
+  static PmTimestamp _lastScheduledSend;
 
   // v8 interface
 public:
@@ -807,8 +814,11 @@ MIDIInput::Initialize(Handle<Object> target)
 }
 
 // //////////////////////////////////////////////////////////////////
-// MIDIOutput methods
+// MIDIOutput guts
 // //////////////////////////////////////////////////////////////////
+
+mutex MIDIOutput::_lastScheduledSendLock;
+PmTimestamp MIDIOutput::_lastScheduledSend = 0;
 
 MIDIOutput::MIDIOutput(int portId, int32_t latency)
   throw(JSException)
@@ -836,6 +846,19 @@ MIDIOutput::send(const vector<unsigned char>& message, PmTimestamp when)
   }
 
   unsigned int statusByte = message[0];
+
+  // If this is a delayed send, ref the default evlib queue so that
+  // the node process does not exit until the last message has been
+  // sent.  See also MIDIOutput::checkScheduledSends()
+  {
+    unique_lock<mutex> lock(_lastScheduledSendLock);
+    if ((when + _latency) > _lastScheduledSend) {
+      if (_lastScheduledSend == 0) {
+        ev_ref(EV_DEFAULT_UC);
+      }
+      _lastScheduledSend = when + _latency;
+    }
+  }
 
   if (statusByte == 0xf0) {
 
@@ -871,6 +894,16 @@ MIDIOutput::send(const vector<unsigned char>& message, PmTimestamp when)
     if (e < 0) {
       throw PortMidiJSException("could not send MIDI message", e);
     }
+  }
+}
+
+void
+MIDIOutput::checkScheduledSends(PmTimestamp timestamp)
+{
+  unique_lock<mutex> lock(_lastScheduledSendLock);
+  if (_lastScheduledSend && (timestamp > _lastScheduledSend)) {
+    ev_unref(EV_DEFAULT_UC);
+    _lastScheduledSend = 0;
   }
 }
 
@@ -978,6 +1011,7 @@ extern "C" {
   pollAll(PtTimestamp timestamp, void* userData)
   {
     MIDIInput::pollAll();
+    MIDIOutput::checkScheduledSends(timestamp);
     MIDI::runTimedCallbacks(timestamp);
   }
 

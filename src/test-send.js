@@ -90,6 +90,7 @@ setTimeout(function () {
     output.noteOn('C5', 0, 1850);
 }, 1000);
 
+MIDI.at(1850, function () { console.log("should be all done"); });
 
 output.controlChange(20, 30);
 output.channel(2);
@@ -103,16 +104,5 @@ try {
 catch (e) {
     console.log('caught expected error:', e);
 }
-
-var stop;
-
-setTimeout(function () { stop = 1; }, 3000);
-function isStopped() {
-    if (!stop) {
-        process.nextTick(isStopped);
-    } else {
-        output.close();
-    }
-}
-
-isStopped();
+output.noteOn('C3', 127, 2500);
+output.noteOn('C3', 0, 3000);
