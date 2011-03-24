@@ -87,12 +87,51 @@ public:
 
   static bool IS_REALTIME(unsigned char status) { return (status & 0xf8) == 0xf8; }
 
+  static void runTimedCallbacks(PmTimestamp timestamp);
+
 private:
   // v8 interface
   static Handle<Value> getPorts(PortDirection direction);
   static Handle<Value> inputPorts(const Arguments& args);
   static Handle<Value> outputPorts(const Arguments& args);
   static Handle<Value> currentTime(const Arguments& args);
+  static Handle<Value> at(const Arguments& args);
+
+  class TimedCallback {
+  public:
+    TimedCallback(PmTimestamp timestamp, Local<Function> callback)
+      : _timestamp(timestamp),
+        _callback(Persistent<Function>::New(callback))
+    {
+    }
+
+    virtual ~TimedCallback()
+    {
+      _callback.Dispose();
+    }
+
+    // define ordering relation for priority queue
+    bool
+    operator<(const TimedCallback& other) const
+    {
+      return _timestamp > other._timestamp;
+    }
+
+    PmTimestamp timestamp() const { return _timestamp; }
+    Persistent<Function>& callback() { return _callback; }
+
+  private:
+    PmTimestamp _timestamp;
+    Persistent<Function> _callback;
+  };
+
+  static int EIO_waitForTimedCallback(eio_req* req);
+  static int EIO_waitForTimedCallbackDone(eio_req* req);
+
+  static condition_variable _timedCallbackWantsToRunCondition;
+  static mutex _timedCallbacksMutex;
+  static priority_queue<TimedCallback*> _timedCallbacks;
+  static bool _timedCallbacksActive;
 };
 
 class MIDIStream
@@ -117,7 +156,7 @@ public:
   virtual ~MIDIInput();
 
   void setFilters(int32_t channels, int32_t filters) throw(JSException);
-  static void pollAll(PtTimestamp timestamp, void* userData);
+  static void pollAll();
 
   // v8 interface
 public:
@@ -200,8 +239,13 @@ public:
 };
 
 // //////////////////////////////////////////////////////////////////
-// MIDI methods
+// MIDI guts
 // //////////////////////////////////////////////////////////////////
+
+condition_variable MIDI::_timedCallbackWantsToRunCondition;
+mutex MIDI::_timedCallbacksMutex;
+priority_queue<MIDI::TimedCallback*> MIDI::_timedCallbacks;
+bool MIDI::_timedCallbacksActive = false;
 
 int
 MIDI::getPortIndex(PortDirection direction, Handle<Value> nameArg)
@@ -241,6 +285,73 @@ MIDI::getPortIndex(PortDirection direction, Handle<Value> nameArg)
   }
 }
 
+void
+MIDI::runTimedCallbacks(PmTimestamp timestamp)
+{
+  unique_lock<mutex> lock(_timedCallbacksMutex);
+  if (_timedCallbacks.size() && (_timedCallbacks.top()->timestamp() <= timestamp)) {
+    _timedCallbackWantsToRunCondition.notify_one();
+ }
+}
+
+int
+MIDI::EIO_waitForTimedCallback(eio_req* req)
+{
+  unique_lock<mutex> lock(_timedCallbacksMutex);
+  while (_timedCallbacks.top()->timestamp() > Pt_Time()) {
+    _timedCallbackWantsToRunCondition.wait(lock);
+  }
+
+  return 0;
+}
+
+int
+MIDI::EIO_waitForTimedCallbackDone(eio_req* req)
+{
+  PtTimestamp timestamp = Pt_Time();
+
+  while (true) {
+    TimedCallback* tc = 0;
+    {
+      unique_lock<mutex> lock(_timedCallbacksMutex);
+      if (!_timedCallbacks.size() || (_timedCallbacks.top()->timestamp() > timestamp)) {
+        break;
+      }
+      tc = _timedCallbacks.top();
+      _timedCallbacks.pop();
+    }
+
+    HandleScope scope;
+
+    Local<Value> argv[1];
+    argv[0] = v8::Integer::New(timestamp);
+
+    TryCatch tryCatch;
+    tc->callback()->Call(Context::GetCurrent()->Global(), 1, argv);
+
+    if (tryCatch.HasCaught()) {
+      FatalException(tryCatch);
+    }
+
+    tc->callback().Dispose();
+    delete tc;
+  }
+
+  unique_lock<mutex> lock(_timedCallbacksMutex);
+
+  if (_timedCallbacks.size() == 0) {
+    ev_unref(EV_DEFAULT_UC);
+    _timedCallbacksActive = false;
+  } else {
+    eio_custom(EIO_waitForTimedCallback,
+               EIO_PRI_DEFAULT,
+               EIO_waitForTimedCallbackDone,
+               0);
+  }
+
+  return 0;
+}
+
 // v8 interface
 
 Handle<Value>
@@ -275,6 +386,34 @@ MIDI::currentTime(const Arguments& args)
   return v8::Integer::New(Pt_Time());
 }
 
+Handle<Value>
+MIDI::at(const Arguments& args)
+{
+  try {
+    if (args.Length() != 2) {
+      throw JSException("unexpected number of arguments to MIDI.at(timestamp, callback)");
+    }
+
+    unique_lock<mutex> lock(_timedCallbacksMutex);
+
+    _timedCallbacks.push(new TimedCallback(args[0]->Int32Value(), Local<Function>::Cast(args[1])));
+
+    if (!_timedCallbacksActive) {
+      eio_custom(EIO_waitForTimedCallback,
+                 EIO_PRI_DEFAULT,
+                 EIO_waitForTimedCallbackDone,
+                 0);
+      _timedCallbacksActive = true;
+      ev_ref(EV_DEFAULT_UC);
+    }
+
+    return Undefined();
+  }
+  catch (const JSException& e) {
+    return e.asV8Exception();
+  }
+}
+
 void
 MIDI::Initialize(Handle<Object> target) {
   HandleScope scope;
@@ -282,6 +421,7 @@ MIDI::Initialize(Handle<Object> target) {
   target->Set(String::NewSymbol("inputPorts"), FunctionTemplate::New(inputPorts)->GetFunction());
   target->Set(String::NewSymbol("outputPorts"), FunctionTemplate::New(outputPorts)->GetFunction());
   target->Set(String::NewSymbol("currentTime"), FunctionTemplate::New(currentTime)->GetFunction());
+  target->Set(String::NewSymbol("at"), FunctionTemplate::New(at)->GetFunction());
 
   MIDIInput::Initialize(target);
   MIDIOutput::Initialize(target);
@@ -425,7 +565,7 @@ set<MIDIInput*> MIDIInput::_receivers;
 mutex MIDIInput::_receiversMutex;
 
 void
-MIDIInput::pollAll(PtTimestamp timestamp, void* userData)
+MIDIInput::pollAll()
 {
   unique_lock<mutex> lock(_receiversMutex);
   for (set<MIDIInput*>::iterator i = _receivers.begin(); i != _receivers.end(); i++) {
@@ -814,9 +954,16 @@ MIDIOutput::Initialize(Handle<Object> target)
 // //////////////////////////////////////////////////////////////////
 
 extern "C" {
+  static void
+  pollAll(PtTimestamp timestamp, void* userData)
+  {
+    MIDIInput::pollAll();
+    MIDI::runTimedCallbacks(timestamp);
+  }
+
   static void init (Handle<Object> target)
   {
-    Pt_Start(1, &MIDIInput::pollAll, 0);
+    Pt_Start(1, pollAll, 0);
     Pm_Initialize();
     HandleScope handleScope;
     
