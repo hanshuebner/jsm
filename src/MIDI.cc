@@ -110,13 +110,6 @@ private:
       _callback.Dispose();
     }
 
-    // define ordering relation for priority queue
-    bool
-    operator<(const TimedCallback& other) const
-    {
-      return _timestamp > other._timestamp;
-    }
-
     PmTimestamp timestamp() const { return _timestamp; }
     Persistent<Function>& callback() { return _callback; }
 
@@ -125,12 +118,38 @@ private:
     Persistent<Function> _callback;
   };
 
+  class TimedCallbackPointer {
+  public:
+    TimedCallbackPointer(TimedCallback* pointer)
+      : _pointer(pointer)
+    {
+    }
+    
+    // define ordering relation for priority queue
+    bool
+    operator<(const TimedCallbackPointer other) const
+    {
+      return _pointer->timestamp() > other->timestamp();
+    }
+
+    void
+    destroy()
+    {
+      delete _pointer;
+    }
+
+    TimedCallback* operator->() const { return _pointer; }
+
+  private:
+    TimedCallback* _pointer;
+  };
+
   static int EIO_waitForTimedCallback(eio_req* req);
   static int EIO_waitForTimedCallbackDone(eio_req* req);
 
   static condition_variable _timedCallbackWantsToRunCondition;
   static mutex _timedCallbacksMutex;
-  static priority_queue<TimedCallback*> _timedCallbacks;
+  static priority_queue<TimedCallbackPointer> _timedCallbacks;
   static bool _timedCallbacksActive;
 };
 
@@ -244,7 +263,7 @@ public:
 
 condition_variable MIDI::_timedCallbackWantsToRunCondition;
 mutex MIDI::_timedCallbacksMutex;
-priority_queue<MIDI::TimedCallback*> MIDI::_timedCallbacks;
+priority_queue<MIDI::TimedCallbackPointer> MIDI::_timedCallbacks;
 bool MIDI::_timedCallbacksActive = false;
 
 int
@@ -289,6 +308,7 @@ void
 MIDI::runTimedCallbacks(PmTimestamp timestamp)
 {
   unique_lock<mutex> lock(_timedCallbacksMutex);
+
   if (_timedCallbacks.size() && (_timedCallbacks.top()->timestamp() <= timestamp)) {
     _timedCallbackWantsToRunCondition.notify_one();
  }
@@ -298,6 +318,7 @@ int
 MIDI::EIO_waitForTimedCallback(eio_req* req)
 {
   unique_lock<mutex> lock(_timedCallbacksMutex);
+
   while (_timedCallbacks.top()->timestamp() > Pt_Time()) {
     _timedCallbackWantsToRunCondition.wait(lock);
   }
@@ -308,13 +329,12 @@ MIDI::EIO_waitForTimedCallback(eio_req* req)
 int
 MIDI::EIO_waitForTimedCallbackDone(eio_req* req)
 {
-  PtTimestamp timestamp = Pt_Time();
-
   while (true) {
-    TimedCallback* tc = 0;
+    PtTimestamp timestamp = Pt_Time();
+    TimedCallbackPointer tc = 0;
     {
       unique_lock<mutex> lock(_timedCallbacksMutex);
-      if (!_timedCallbacks.size() || (_timedCallbacks.top()->timestamp() > timestamp)) {
+      if (_timedCallbacks.empty() || (_timedCallbacks.top()->timestamp() > timestamp)) {
         break;
       }
       tc = _timedCallbacks.top();
@@ -334,12 +354,12 @@ MIDI::EIO_waitForTimedCallbackDone(eio_req* req)
     }
 
     tc->callback().Dispose();
-    delete tc;
+    tc.destroy();
   }
 
   unique_lock<mutex> lock(_timedCallbacksMutex);
 
-  if (_timedCallbacks.size() == 0) {
+  if (_timedCallbacks.empty()) {
     ev_unref(EV_DEFAULT_UC);
     _timedCallbacksActive = false;
   } else {

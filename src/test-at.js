@@ -11,3 +11,8 @@ function checkAndRequeue(timestamp)
 }
 
 checkAndRequeue(MIDI.currentTime());
+
+MIDI.at(baseTime + 2300, function () { console.log('three'); });
+MIDI.at(baseTime + 2200, function () { console.log('two'); });
+MIDI.at(baseTime + 2100, function () { console.log('one'); });
+
