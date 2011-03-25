@@ -1,5 +1,28 @@
 // -*- C++ -*-
 
+// MIDI.cc - MIDI interface for node.js, based on the portmidi
+// cross-platform MIDI library
+
+// Copyright Hans Huebner and contributors. All rights reserved.
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use, copy,
+// modify, merge, publish, distribute, sublicense, and/or sell copies
+// of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+
 #include <iostream>
 #include <iomanip>
 #include <sstream>
@@ -24,6 +47,10 @@ using namespace boost;
 using namespace v8;
 using namespace node;
 
+// //////////////////////////////////////////////////////////////////
+// Throwable error class that can be converted to a JavaScript
+// exception
+// //////////////////////////////////////////////////////////////////
 class JSException
 {
 public:
@@ -35,6 +62,10 @@ protected:
   string _message;
 };
 
+// //////////////////////////////////////////////////////////////////
+// Throwable convertable error class that carries Portmidi error
+// information
+// //////////////////////////////////////////////////////////////////
 class PortMidiJSException
   : public JSException
 {
@@ -69,6 +100,10 @@ PortMidiJSException::message() const
   }
 }
 
+// //////////////////////////////////////////////////////////////////
+// Class to encapsulate MIDI utility functionality.  This class
+// implements the MIDI object's functions.
+// //////////////////////////////////////////////////////////////////
 class MIDI
 {
 public:
@@ -93,6 +128,10 @@ private:
   static Handle<Value> currentTime(const Arguments& args);
   static Handle<Value> at(const Arguments& args);
 
+  // //////////////////////////////////////////////////////////////////
+  // TimedCallback implements a JS function that is scheduled to be
+  // called synchronously to the MIDI clock.
+  // //////////////////////////////////////////////////////////////////
   class TimedCallback {
   public:
     TimedCallback(PmTimestamp timestamp, Local<Function> callback)
@@ -114,6 +153,12 @@ private:
     Persistent<Function> _callback;
   };
 
+  // //////////////////////////////////////////////////////////////////
+  // TimedCallbackPointer encapsulates a pointer to a TimedCallback
+  // and provides for an ordering relation so that TimedCallbacks can
+  // be put into a priority queue with the next callback to run in
+  // front of the queue.
+  // //////////////////////////////////////////////////////////////////
   class TimedCallbackPointer {
   public:
     TimedCallbackPointer(TimedCallback* pointer)
@@ -140,15 +185,21 @@ private:
     TimedCallback* _pointer;
   };
 
+  // libev interface functions for timed callbacks
   static int EIO_waitForTimedCallback(eio_req* req);
   static int EIO_waitForTimedCallbackDone(eio_req* req);
 
+  // guts for the implementation of timed callbacks.
   static condition_variable _timedCallbackWantsToRunCondition;
   static mutex _timedCallbacksMutex;
   static priority_queue<TimedCallbackPointer> _timedCallbacks;
   static bool _timedCallbacksActive;
 };
 
+// //////////////////////////////////////////////////////////////////
+// Class to implement common functionality for MIDI input and output
+// channels.
+// //////////////////////////////////////////////////////////////////
 class MIDIStream
 {
 public:
@@ -158,6 +209,10 @@ public:
   virtual ~MIDIStream();
   virtual void close();
 
+  // portName() returns the name of the port actually chosen.  This
+  // could be the port name passed as constructor argument, the one
+  // named in the MIDI_INPUT or MIDI_OUTPUT environment variable or
+  // the first port.
   const string& portName() const { return _portName; }
   const int portId() const { return _portId; }
 
@@ -173,6 +228,12 @@ private:
   int _portId;
 };
 
+// //////////////////////////////////////////////////////////////////
+// Class to implement a MIDI input channel.  It works in an
+// asynchronous fashion, received messages are queued by the
+// background thread and sent back to the JavaScript application
+// by the way of libev.
+// //////////////////////////////////////////////////////////////////
 class MIDIInput
   : public EventEmitter,
     public MIDIStream
@@ -205,27 +266,40 @@ private:
 
   static int EIO_recv(eio_req* req);
   static int EIO_recvDone(eio_req* req);
-  void readResultsToJSCallbackArguments(Local<Value> argv[]);
 
-  class ReceiveIOCB {
-
-    friend int MIDIInput::EIO_recv(eio_req* req);
-    friend int MIDIInput::EIO_recvDone(eio_req* req);
-
-  public:
+  // //////////////////////////////////////////////////////////////////
+  // Class to encapsulate one queued read of MIDI messages.  A pointer
+  // to an instance of this class is passed to libev during processing
+  // of a receive operation.  Once the operation is finished, the
+  // JavaScript function contained in it will be called with the
+  // received messages as argument.
+  // //////////////////////////////////////////////////////////////////
+  struct ReceiveIOCB {
     ReceiveIOCB(MIDIInput* midiInput, Persistent<Object> this_, Persistent<Function> callback)
-      : _midiInput(midiInput), _this(this_), _callback(callback) {}
+      : _midiInput(midiInput),
+        _this(this_),
+        _callback(callback),
+        _error(0)
+    {}
 
-  private:
+    ~ReceiveIOCB()
+    {
+      if (_error) {
+        delete _error;
+      }
+    }
+
     MIDIInput* _midiInput;
     Persistent<Object> _this;
     Persistent<Function> _callback;
+    PortMidiJSException* _error;
   };
 
   void waitForData(ReceiveIOCB* iocb);
   bool dataAvailable() const { return _sysexQueue.size() || _readQueue.size(); }
+  void readResultsToJSCallbackArguments(ReceiveIOCB* iocb, Local<Value> argv[]);
 
-  PortMidiJSException* _error;
+  // Queues for received messages
   queue<PmEvent> _readQueue;
   struct SysexMessageBuffer {
     vector<unsigned char> data;
@@ -236,9 +310,13 @@ private:
 
   bool inSysexMessage() { return _currentSysexMessage.data.size(); }
 
+  // Unpack one message into the current sysex message buffer _currentSysexMessage
   void unpackSysexMessage(PmEvent message);
 };
 
+// //////////////////////////////////////////////////////////////////
+// Class to implement a MIDI output channel.
+// //////////////////////////////////////////////////////////////////
 class MIDIOutput
   : public ObjectWrap,
     public MIDIStream
@@ -280,44 +358,6 @@ condition_variable MIDI::_timedCallbackWantsToRunCondition;
 mutex MIDI::_timedCallbacksMutex;
 priority_queue<MIDI::TimedCallbackPointer> MIDI::_timedCallbacks;
 bool MIDI::_timedCallbacksActive = false;
-
-MIDIStream::MIDIStream(MIDI::PortDirection direction, const char* portNameArg)
-{
-  const char* environmentVariableName = (direction == MIDI::INPUT) ? "MIDI_INPUT" : "MIDI_OUTPUT";
-  const char* portNameFromEnvironment = getenv(environmentVariableName);
-  bool useFirst = false;
-
-  string portName = portNameArg ? portNameArg : "";
-  if (portNameArg) {
-    portName = portNameArg;
-  } else if (portNameFromEnvironment) {
-    portName = portNameFromEnvironment;
-  } else {
-    useFirst = true;
-  }
-
-  for (int id = 0; id < Pm_CountDevices(); id++) {
-    const PmDeviceInfo* deviceInfo = Pm_GetDeviceInfo(id);
-    if (((direction == MIDI::INPUT) ^ deviceInfo->output)
-        && (useFirst || (portName == deviceInfo->name))) {
-      _portName = deviceInfo->name;
-      _portId = id;
-      return;
-    }
-  }
-
-  // no matching port found
-  const char* directionName = (direction == MIDI::INPUT) ? "input" : "output";;
-  if (useFirst) {
-    throw JSException((string) "no MIDI " + directionName + " ports");
-  } else {
-    if (!portNameArg) {
-      throw JSException((string) "invalid MIDI " + directionName + " port name \"" + portName + "\" in " + environmentVariableName + " environment variable");
-    } else {
-      throw JSException((string) "invalid MIDI " + directionName + " port name \"" + portName + "\"");
-    }
-  }
-}
 
 void
 MIDI::runTimedCallbacks(PmTimestamp timestamp)
@@ -463,9 +503,46 @@ MIDI::Initialize(Handle<Object> target) {
 }
 
 // //////////////////////////////////////////////////////////////////
-// MIDIStream methods
+// MIDIStream guts
 // //////////////////////////////////////////////////////////////////
 
+MIDIStream::MIDIStream(MIDI::PortDirection direction, const char* portNameArg)
+{
+  const char* environmentVariableName = (direction == MIDI::INPUT) ? "MIDI_INPUT" : "MIDI_OUTPUT";
+  const char* portNameFromEnvironment = getenv(environmentVariableName);
+  bool useFirst = false;
+
+  string portName = portNameArg ? portNameArg : "";
+  if (portNameArg) {
+    portName = portNameArg;
+  } else if (portNameFromEnvironment) {
+    portName = portNameFromEnvironment;
+  } else {
+    useFirst = true;
+  }
+
+  for (int id = 0; id < Pm_CountDevices(); id++) {
+    const PmDeviceInfo* deviceInfo = Pm_GetDeviceInfo(id);
+    if (((direction == MIDI::INPUT) ^ deviceInfo->output)
+        && (useFirst || (portName == deviceInfo->name))) {
+      _portName = deviceInfo->name;
+      _portId = id;
+      return;
+    }
+  }
+
+  // no matching port found
+  const char* directionName = (direction == MIDI::INPUT) ? "input" : "output";;
+  if (useFirst) {
+    throw JSException((string) "no MIDI " + directionName + " ports");
+  } else {
+    if (!portNameArg) {
+      throw JSException((string) "invalid MIDI " + directionName + " port name \"" + portName + "\" in " + environmentVariableName + " environment variable");
+    } else {
+      throw JSException((string) "invalid MIDI " + directionName + " port name \"" + portName + "\"");
+    }
+  }
+}
 
 MIDIStream::~MIDIStream()
 {
@@ -491,7 +568,7 @@ MIDIStream::close(const Arguments& args)
 }
 
 // //////////////////////////////////////////////////////////////////
-// MIDIInput methods
+// MIDIInput guts
 // //////////////////////////////////////////////////////////////////
 
 MIDIInput::MIDIInput(const char* portName)
@@ -675,7 +752,7 @@ MIDIInput::waitForData(ReceiveIOCB* iocb)
   PmEvent events[RECV_EVENTS];
   int rc = Pm_Read(_pmMidiStream, events, RECV_EVENTS);
   if (rc < 0) {
-    _error = new PortMidiJSException("error receiving MIDI data", (PmError) rc);
+    iocb->_error = new PortMidiJSException("error receiving MIDI data", (PmError) rc);
     while (!_readQueue.empty()) {
       _readQueue.pop();
     }
@@ -705,14 +782,12 @@ MIDIInput::waitForData(ReceiveIOCB* iocb)
 }
 
 void
-MIDIInput::readResultsToJSCallbackArguments(Local<Value> argv[])
+MIDIInput::readResultsToJSCallbackArguments(ReceiveIOCB* iocb, Local<Value> argv[])
 {
   unique_lock<mutex> lock(_mutex);
 
-  if (_error) {
-    argv[2] = Exception::Error(String::New(_error->message().c_str()));
-    delete _error;
-    _error = 0;
+  if (iocb->_error) {
+    argv[2] = Exception::Error(String::New(iocb->_error->message().c_str()));
   } else {
     Local<Array> events = Array::New(_sysexQueue.size() + _readQueue.size());
     int i = 0;
@@ -766,7 +841,7 @@ MIDIInput::EIO_recvDone(eio_req* req)
   argv[1] = *Undefined();
   argv[2] = *Undefined();
 
-  iocb->_midiInput->readResultsToJSCallbackArguments(argv);
+  iocb->_midiInput->readResultsToJSCallbackArguments(iocb, argv);
   iocb->_midiInput->Unref();
 
   TryCatch tryCatch;
@@ -796,7 +871,6 @@ MIDIInput::recv(const Arguments& args)
 
   MIDIInput* midiInput = ObjectWrap::Unwrap<MIDIInput>(args.This());
   midiInput->Ref();
-  midiInput->_error = 0;
 
   eio_custom(EIO_recv,
              EIO_PRI_DEFAULT,
