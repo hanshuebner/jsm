@@ -9,10 +9,18 @@ convenience functions for each defined MIDI message.
 
 Return a `MIDIOutput` object opened to the port with the given
 `portName`.  If a `latency` is supplied, it determines the portmidi
-latency of the port and enables deferred sending of messages.  The
-`time` argument that can be supplied to all the message sending
+latency of the port and enables deferred sending of messages.
+
+The `time` argument that can be supplied to all the message sending
 functions below specifies the absolute time at which the message will
-be sent.
+be sent.  The current absolute time may be determined by the
+'MIDI.currentTime()' function.  Note that it is an error to specify a
+sending time that has already passed.  Also, message sending
+timestamps must be monotonically increasing, i.e. once a message has
+been enqueued for a certain point in time, it is not possible to
+enqueue another message to be sent earlier than that.  Such a
+condition will be detected and signalled as an error to the
+application.
 
 ### MIDIOutput.channel(channelNumber)
 

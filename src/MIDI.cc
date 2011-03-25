@@ -251,6 +251,7 @@ public:
 
 private:
   int32_t _latency;
+  PmTimestamp _lastSendTime;
 
   static mutex _lastScheduledSendLock;
   static PmTimestamp _lastScheduledSend;
@@ -822,7 +823,8 @@ PmTimestamp MIDIOutput::_lastScheduledSend = 0;
 
 MIDIOutput::MIDIOutput(int portId, int32_t latency)
   throw(JSException)
-  : _latency(latency)
+  : _latency(latency),
+    _lastSendTime(0)
 {
   PmError e = Pm_OpenOutput(&_pmMidiStream, 
                             portId, 
@@ -845,12 +847,18 @@ MIDIOutput::send(const vector<unsigned char>& message, PmTimestamp when)
     throw JSException("cannot send message without content");
   }
 
-  unsigned int statusByte = message[0];
+  if (when) {
+    if (when < Pt_Time()) {
+      throw JSException("message sending time has already passed");
+    }
+    if (_lastSendTime && (when < _lastSendTime)) {
+      throw JSException("message send times must be monotonically increasing for one MIDIOutput object");
+    }
+    _lastSendTime = when;
 
-  // If this is a delayed send, ref the default evlib queue so that
-  // the node process does not exit until the last message has been
-  // sent.  See also MIDIOutput::checkScheduledSends()
-  {
+    // Reference the default evlib queue so that the node process does
+    // not exit until the last message has been sent.  See also
+    // MIDIOutput::checkScheduledSends()
     unique_lock<mutex> lock(_lastScheduledSendLock);
     if ((when + _latency) > _lastScheduledSend) {
       if (_lastScheduledSend == 0) {
@@ -859,6 +867,8 @@ MIDIOutput::send(const vector<unsigned char>& message, PmTimestamp when)
       _lastScheduledSend = when + _latency;
     }
   }
+
+  unsigned int statusByte = message[0];
 
   if (statusByte == 0xf0) {
 

@@ -79,19 +79,6 @@ function sendSomeNotes(channel, basePitch, velocity) {
 
 sendSomeNotes(1, 64, 45);
 
-setTimeout(function () {
-    output.noteOn('C3', 127, 100);
-    output.noteOn('C3', 0, 1100);
-    output.noteOn('C4', 127, 1250);
-    output.noteOn('C4', 0, 1350);
-    output.noteOn('c3', 127, 1500);
-    output.noteOn('c3', 0, 1600);
-    output.noteOn('C5', 127, 1750);
-    output.noteOn('C5', 0, 1850);
-}, 1000);
-
-MIDI.at(1850, function () { console.log("should be all done"); });
-
 output.controlChange(20, 30);
 output.channel(2);
 output.controlChange(20, 30);
@@ -104,5 +91,7 @@ try {
 catch (e) {
     console.log('caught expected error:', e);
 }
-output.noteOn('C3', 127, 2500);
-output.noteOn('C3', 0, 3000);
+
+MIDI.at(3000, function () { console.log("should be all done, time is", MIDI.currentTime()); });
+
+process.on('exit', function () { console.log('exiting, current time is', MIDI.currentTime()); });
