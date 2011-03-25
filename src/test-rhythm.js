@@ -10,7 +10,7 @@ var output = new MIDI.MIDIOutput(port, 1);
 
 var kick =  [ 'c1', 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1 ];
 var snare = [ 'd1', 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 ];
-var hats =  [ 'd2', 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1 ];
+var hats =  [ 'd2', 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0 ];
 
 function playRhythm(specs, times, base, tempo) {
     var sixteenth = 60000 / tempo / 4;
