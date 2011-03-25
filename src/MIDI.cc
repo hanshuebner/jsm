@@ -553,7 +553,7 @@ MIDIInput::New(const Arguments& args)
     }
     MIDIInput* midiInput = new MIDIInput(portName);
     midiInput->Wrap(args.This());
-    args.This()->Set(String::New("portName"), String::New(midiInput->portName().c_str()));
+    args.This()->Set(String::New("portName"), String::New(midiInput->portName().c_str()), ReadOnly);
 
     static Persistent<String> init_psymbol = NODE_PSYMBOL("init");
 
@@ -951,7 +951,7 @@ MIDIOutput::New(const Arguments& args)
     }
     MIDIOutput* midiOutput = new MIDIOutput(portName, latency);
     midiOutput->Wrap(args.This());
-    args.This()->Set(String::New("portName"), String::New(midiOutput->portName().c_str()));
+    args.This()->Set(String::New("portName"), String::New(midiOutput->portName().c_str()), ReadOnly);
 
     return args.This();
   }
