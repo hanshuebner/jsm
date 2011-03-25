@@ -1,16 +1,8 @@
 
 var MIDI = require('MIDI');
 
-console.log(MIDI);
-
-console.log('inputs: ', MIDI.inputPorts());
-console.log('outputs: ', MIDI.outputPorts());
-
-var port = MIDI.inputPorts()[0];
-
-console.log('opening port "' + port + '"');
-
-var midiInput = new MIDI.MIDIInput(port);
+var midiInput = new MIDI.MIDIInput();
+console.log("opened MIDI input port", midiInput.portName);
 
 midiInput.setFilters(0xffff, 0);
 

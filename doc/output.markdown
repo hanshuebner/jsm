@@ -8,8 +8,13 @@ convenience functions for each defined MIDI message.
 ### MIDIOutput(portName[, latency])
 
 Return a `MIDIOutput` object opened to the port with the given
-`portName`.  If a `latency` is supplied, it determines the portmidi
-latency of the port and enables deferred sending of messages.
+`portName`.  `portName` can be specified as `undefined`.  If so, the
+port named by the MIDI_OUTPUT environment variable, or, if that
+variable is not set, the first MIDI output port available in the
+system will be opened.
+
+If a `latency` is supplied, it determines the portmidi latency of the
+port and enables deferred sending of messages.
 
 The `time` argument that can be supplied to all the message sending
 functions below specifies the absolute time at which the message will
@@ -21,6 +26,10 @@ been enqueued for a certain point in time, it is not possible to
 enqueue another message to be sent earlier than that.  Such a
 condition will be detected and signalled as an error to the
 application.
+
+### MIDIOutput.portName()
+
+Returns the port name that this `MIDIOutput` object has been opened on.
 
 ### MIDIOutput.channel(channelNumber)
 

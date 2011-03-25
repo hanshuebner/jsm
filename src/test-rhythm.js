@@ -1,12 +1,7 @@
 var MIDI = require('MIDI');
 
-console.log('outputs: ', MIDI.outputPorts());
-
-var port = process.env.MIDI_OUTPUT || MIDI.outputPorts()[0];
-
-console.log('opening port "' + port + '"');
-
-var output = new MIDI.MIDIOutput(port, 1);
+var output = new MIDI.MIDIOutput(undefined, 1);
+console.log('opened MIDI output port', output.portName);
 
 var kick =  [ 'c1', 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1 ];
 var snare = [ 'd1', 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 ];

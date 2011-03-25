@@ -1,11 +1,8 @@
 
 var MIDI = require('MIDI');
 
-var port = process.env.MIDI_INPUT || MIDI.inputPorts()[0];
-
-console.log('opening port "' + port + '"');
-
-var midiInput = new MIDI.MIDIInput(port);
+var midiInput = new MIDI.MIDIInput();
+console.log("opened MIDI input port", midiInput.portName);
 
 midiInput.on('nrpn14', function (nrpn, value, channel) {
     console.log('nrpn14', nrpn, 'value', value, 'channel', channel);

@@ -1,13 +1,8 @@
 
 var MIDI = require('MIDI');
 
-console.log('outputs: ', MIDI.outputPorts());
-
-var port = process.env.MIDI_OUTPUT || MIDI.outputPorts()[0];
-
-console.log('opening port "' + port + '"');
-
-var output = new MIDI.MIDIOutput(port, 1);
+var output = new MIDI.MIDIOutput(undefined, 1);
+console.log('opened MIDI output port', output.portName);
 
 output.send('f0 00 01 02 f7');
 
@@ -68,10 +63,10 @@ function sendSomeNotes(channel, basePitch, velocity) {
         output.noteOn(pitch+7, velocity, i * period);
         output.noteOn(pitch+10, velocity, i * period);
 
-        output.noteOn(pitch, 0, i * period + 100);
-        output.noteOn(pitch+3, 0, i * period + 100);
-        output.noteOn(pitch+7, 0, i * period + 100);
-        output.noteOn(pitch+10, 0, i * period + 100);
+        output.noteOn(pitch, 0, i * period + 350);
+        output.noteOn(pitch+3, 0, i * period + 350);
+        output.noteOn(pitch+7, 0, i * period + 350);
+        output.noteOn(pitch+10, 0, i * period + 350);
 
         console.log('sent ' + i);
     }

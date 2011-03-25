@@ -76,10 +76,6 @@ public:
 
   enum PortDirection { INPUT, OUTPUT };
 
-  // Get id of MIDI port with the given name.  Returns the ID or -1 if
-  // no MIDI device with the given name is found
-  static int getPortIndex(PortDirection direction, Handle<Value> name);
-
   enum {
     SYSEX_START = 0xf0,
     SYSEX_END = 0xf7
@@ -156,14 +152,25 @@ private:
 class MIDIStream
 {
 public:
+  MIDIStream(MIDI::PortDirection direction,
+             const char* portName);
+
   virtual ~MIDIStream();
   virtual void close();
 
+  const string& portName() const { return _portName; }
+  const int portId() const { return _portId; }
+
   static Handle<Value> close(const Arguments& args);
+
 protected:
   PmStream* _pmMidiStream;
 
   enum { MIDISTREAM_BUFSIZE = 16384 };
+
+private:
+  string _portName;
+  int _portId;
 };
 
 class MIDIInput
@@ -171,7 +178,7 @@ class MIDIInput
     public MIDIStream
 {
 public:
-  MIDIInput(int portId) throw(JSException);
+  MIDIInput(const char* portName) throw(JSException);
   virtual ~MIDIInput();
 
   void setFilters(int32_t channels, int32_t filters) throw(JSException);
@@ -237,7 +244,7 @@ class MIDIOutput
     public MIDIStream
 {
 public:
-  MIDIOutput(int portId, int32_t latency) throw(JSException);
+  MIDIOutput(const char* portName, int32_t latency) throw(JSException);
 
   void send(const vector<unsigned char>& message,
             PmTimestamp when = 0)
@@ -274,18 +281,15 @@ mutex MIDI::_timedCallbacksMutex;
 priority_queue<MIDI::TimedCallbackPointer> MIDI::_timedCallbacks;
 bool MIDI::_timedCallbacksActive = false;
 
-int
-MIDI::getPortIndex(PortDirection direction, Handle<Value> nameArg)
+MIDIStream::MIDIStream(MIDI::PortDirection direction, const char* portNameArg)
 {
-  string portName;
-
-  const char* environmentVariableName = (direction == INPUT) ? "MIDI_INPUT" : "MIDI_OUTPUT";
+  const char* environmentVariableName = (direction == MIDI::INPUT) ? "MIDI_INPUT" : "MIDI_OUTPUT";
   const char* portNameFromEnvironment = getenv(environmentVariableName);
-  Handle<Value> ports = getPorts(direction);
   bool useFirst = false;
 
-  if (nameArg != Undefined()) {
-    portName = *String::Utf8Value(nameArg);
+  string portName = portNameArg ? portNameArg : "";
+  if (portNameArg) {
+    portName = portNameArg;
   } else if (portNameFromEnvironment) {
     portName = portNameFromEnvironment;
   } else {
@@ -294,17 +298,20 @@ MIDI::getPortIndex(PortDirection direction, Handle<Value> nameArg)
 
   for (int id = 0; id < Pm_CountDevices(); id++) {
     const PmDeviceInfo* deviceInfo = Pm_GetDeviceInfo(id);
-    if (((direction == INPUT) ^ deviceInfo->output)
+    if (((direction == MIDI::INPUT) ^ deviceInfo->output)
         && (useFirst || (portName == deviceInfo->name))) {
-      return id;
+      _portName = deviceInfo->name;
+      _portId = id;
+      return;
     }
   }
 
-  const char* directionName = (direction == INPUT) ? "input" : "output";;
+  // no matching port found
+  const char* directionName = (direction == MIDI::INPUT) ? "input" : "output";;
   if (useFirst) {
     throw JSException((string) "no MIDI " + directionName + " ports");
   } else {
-    if (nameArg == Undefined()) {
+    if (!portNameArg) {
       throw JSException((string) "invalid MIDI " + directionName + " port name \"" + portName + "\" in " + environmentVariableName + " environment variable");
     } else {
       throw JSException((string) "invalid MIDI " + directionName + " port name \"" + portName + "\"");
@@ -389,7 +396,7 @@ MIDI::getPorts(PortDirection direction)
   unsigned count = 0;
   for (int id = 0; id < Pm_CountDevices(); id++) {
     const PmDeviceInfo* deviceInfo = Pm_GetDeviceInfo(id);
-    if ((direction == INPUT) ^ deviceInfo->output) {
+    if ((direction == MIDI::INPUT) ^ deviceInfo->output) {
       retval->Set(count++, String::New(deviceInfo->name));
     }
   }
@@ -399,13 +406,13 @@ MIDI::getPorts(PortDirection direction)
 Handle<Value>
 MIDI::inputPorts(const Arguments& args)
 {
-  return getPorts(INPUT);
+  return getPorts(MIDI::INPUT);
 }
 
 Handle<Value>
 MIDI::outputPorts(const Arguments& args)
 {
-  return getPorts(OUTPUT);
+  return getPorts(MIDI::OUTPUT);
 }
 
 Handle<Value>
@@ -487,11 +494,12 @@ MIDIStream::close(const Arguments& args)
 // MIDIInput methods
 // //////////////////////////////////////////////////////////////////
 
-MIDIInput::MIDIInput(int portId)
+MIDIInput::MIDIInput(const char* portName)
   throw(JSException)
+  : MIDIStream(MIDI::INPUT, portName)
 {
   PmError e = Pm_OpenInput(&_pmMidiStream, 
-                           portId, 
+                           portId(),
                            0,                  // driver info
                            MIDISTREAM_BUFSIZE, // buffer size
                            0,                  // time proc
@@ -539,10 +547,13 @@ MIDIInput::New(const Arguments& args)
   HandleScope scope;
 
   try {
-    int portId = MIDI::getPortIndex(MIDI::INPUT, args[0]);
-
-    MIDIInput* midiInput = new MIDIInput(portId);
+    const char* portName = 0;
+    if (args[0] != Undefined()) {
+      portName = *String::Utf8Value(args[0]);
+    }
+    MIDIInput* midiInput = new MIDIInput(portName);
     midiInput->Wrap(args.This());
+    args.This()->Set(String::New("portName"), String::New(midiInput->portName().c_str()));
 
     static Persistent<String> init_psymbol = NODE_PSYMBOL("init");
 
@@ -821,13 +832,14 @@ MIDIInput::Initialize(Handle<Object> target)
 mutex MIDIOutput::_lastScheduledSendLock;
 PmTimestamp MIDIOutput::_lastScheduledSend = 0;
 
-MIDIOutput::MIDIOutput(int portId, int32_t latency)
+MIDIOutput::MIDIOutput(const char* portName, int32_t latency)
   throw(JSException)
-  : _latency(latency),
+  : MIDIStream(MIDI::OUTPUT, portName),
+    _latency(latency),
     _lastSendTime(0)
 {
   PmError e = Pm_OpenOutput(&_pmMidiStream, 
-                            portId, 
+                            portId(), 
                             0,                  // driver info
                             MIDISTREAM_BUFSIZE, // queue size
                             0,                  // time proc
@@ -928,15 +940,19 @@ MIDIOutput::New(const Arguments& args)
   HandleScope scope;
 
   try {
-    int portId = MIDI::getPortIndex(MIDI::OUTPUT, args[0]);
-
     int32_t latency = 0;
     if (args.Length() > 1) {
       latency = args[1]->Int32Value();
     }
 
-    MIDIOutput* midiOutput = new MIDIOutput(portId, latency);
+    const char* portName = 0;
+    if (args[0] != Undefined()) {
+      portName = *String::Utf8Value(args[0]);
+    }
+    MIDIOutput* midiOutput = new MIDIOutput(portName, latency);
     midiOutput->Wrap(args.This());
+    args.This()->Set(String::New("portName"), String::New(midiOutput->portName().c_str()));
+
     return args.This();
   }
   catch (const JSException& e) {
@@ -1006,8 +1022,8 @@ MIDIOutput::Initialize(Handle<Object> target)
   Handle<FunctionTemplate> midiOutputTemplate = FunctionTemplate::New(New);
   midiOutputTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
-  NODE_SET_PROTOTYPE_METHOD(midiOutputTemplate, "send", send);
   NODE_SET_PROTOTYPE_METHOD(midiOutputTemplate, "close", MIDIStream::close);
+  NODE_SET_PROTOTYPE_METHOD(midiOutputTemplate, "send", send);
 
   target->Set(String::NewSymbol("MIDIOutput"), midiOutputTemplate->GetFunction());
 }

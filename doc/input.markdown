@@ -15,7 +15,10 @@ program.
 ### MIDIInput(portName)
 
 Return a `MIDIInput` object opened to the port with the given
-`portName`.
+`portName`.  `portName` can be specified as `undefined`.  If so, the
+port named by the MIDI_INPUT environment variable, or, if that
+variable is not set, the first MIDI input port available in the system
+will be opened.
 
 ## Higher-level events
 
@@ -140,6 +143,10 @@ message delimiters.
 ### Event: 'reset'
 
 `function (time) { }`
+
+### MIDIInput.portName()
+
+Returns the port name that this `MIDIInput` object has been opened on.
 
 ### MIDIOutput.channels(argument)
 

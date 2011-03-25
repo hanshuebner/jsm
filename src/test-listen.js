@@ -1,13 +1,8 @@
 
 var MIDI = require('MIDI');
 
-console.log('inputs: ', MIDI.inputPorts());
-
-var port = process.env.MIDI_INPUT || MIDI.inputPorts()[0];
-
-console.log('opening port "' + port + '"');
-
-var midiInput = new MIDI.MIDIInput(port);
+var midiInput = new MIDI.MIDIInput();
+console.log("opened MIDI input port", midiInput.portName);
 
 midiInput.on('sysex', function (message, time) {
     console.log('sysex:', MIDI.messageToString(message), 'time', time);
