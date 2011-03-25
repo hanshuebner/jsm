@@ -20,10 +20,10 @@ port named by the MIDI_INPUT environment variable, or, if that
 variable is not set, the first MIDI input port available in the system
 will be opened.
 
-## Higher-level events
+### Higher-level events
 
-### Event: 'nrpn7'
-### Event: 'nrpn14'
+#### Event: 'nrpn7'
+#### Event: 'nrpn14'
 
 `function (parameterNumber, value, channel, time) { }`
 
@@ -54,43 +54,43 @@ The 'nrpn7' and 'nrpn14' events are emitted to the application
 whenever a new value has been completely received, either through an
 incremental or an absolute change message.
 
-## Standard MIDI message events
+### Standard MIDI message events
 
 Applications can listen for any of the standard MIDI messages as
 listed below.  Event handlers are called with the message argument(s)
 parsed as integer values.
 
-### Event: 'noteOn'
+#### Event: 'noteOn'
 
 `function (pitch, velocity, channel, time) { }`
 
-### Event: 'noteOff'
+#### Event: 'noteOff'
 
 `function (pitch, velocity, channel, time) { }`
 
-### Event: 'polyphonicKeyPressure'
+#### Event: 'polyphonicKeyPressure'
 
 `function (pitch, velocity, channel, time) { }`
 
-### Event: 'controlChange'
+#### Event: 'controlChange'
 
 `function (controllerNumber, controllerValue, channel, time) { }`
 
-### Event: 'programChange'
+#### Event: 'programChange'
 
 `function (programNumber, channel, time) { }`
 
-### Event: 'channelPressure'
+#### Event: 'channelPressure'
 
 `function (pressureValue, channel, time) { }`
 
-### Event: 'pitchWheelChange'
+#### Event: 'pitchWheelChange'
 
 `function (valueLsb, valueMsb, channel, time) { }`
 
-## System Common Messages
+### System Common Messages
 
-### Event: 'sysex'
+#### Event: 'sysex'
 
 `function (message, time) { }`
 
@@ -98,53 +98,53 @@ Emitted when a system exclusive message has been received.  The
 message is passed as an array of numbers, including the 0xf0 and 0xf7
 message delimiters.
 
-### Event: 'midiTimeCode'
+#### Event: 'midiTimeCode'
 
 `function (argument, time) { }`
 
-### Event: 'songPositionPointer'
+#### Event: 'songPositionPointer'
 
 `function (positionLsb, positionMsb, time) { }`
 
-### Event: 'songSelect'
+#### Event: 'songSelect'
 
 `function (songNumber, time) { }`
 
-### Event: 'tuneRequest'
+#### Event: 'tuneRequest'
 
 `function (time) { }`
 
-## System Real-Time Messages
+### System Real-Time Messages
 
-### Event: 'timingClock'
-
-`function (time) { }`
-
-### Event: 'tick'
+#### Event: 'timingClock'
 
 `function (time) { }`
 
-### Event: 'start'
+#### Event: 'tick'
 
 `function (time) { }`
 
-### Event: 'stop'
+#### Event: 'start'
 
 `function (time) { }`
 
-### Event: 'continue'
+#### Event: 'stop'
 
 `function (time) { }`
 
-### Event: 'activeSensing'
+#### Event: 'continue'
 
 `function (time) { }`
 
-### Event: 'reset'
+#### Event: 'activeSensing'
 
 `function (time) { }`
 
-### MIDIInput.portName()
+#### Event: 'reset'
+
+`function (time) { }`
+
+### MIDIInput.portName
 
 Returns the port name that this `MIDIInput` object has been opened on.
 

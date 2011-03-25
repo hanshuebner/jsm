@@ -1,7 +1,7 @@
 # jsm - MIDI library for node
 
 jsm makes a system's MIDI ports accessible to node applications.  It
-uses the (portmidi)[http://sourceforge.net/projects/portmedia]
+uses the [portmidi](http://sourceforge.net/projects/portmedia)
 cross-platform media library, so it should work on MacOS, Windows and
 Linux.
 
@@ -20,11 +20,9 @@ messages:
 
     var MIDI = require('MIDI');
 
-    var outputs = MIDI.outputPorts();
-    if (!outputs.length) {
-       throw "No MIDI output ports";
-    }
-    var midiOutput = new MIDI.MIDIOutput(outputs[0]);
+    var midiOutput = new MIDI.MIDIOutput();
+    console.log("opened MIDI output port", midiOutput.portName);
+
     midiOutput.channel(3);              // Set output channel 3
     midiOutput.controlChange(0, 10);    // Select bank 10 (CC0)
     midiOutput.channel(4);              // Set output channel 4
@@ -37,12 +35,9 @@ prints them to the console:
 
     var MIDI = require('MIDI');
     
-    var inputs = MIDI.inputPorts();
-    if (!inputs.length) {
-       throw "No MIDI input ports";
-    }
-    console.log('opening', inputs[0]);
-    var midiInput = new MIDI.MIDIInput(inputs[0]);
+    var midiInput = new MIDI.MIDIInput();
+    console.log("opened MIDI input port", midiOutput.portName);
+
     midiInput.on('noteOn',
                  function (pitch, velocity, channel) {
                      console.log('note', MIDI.pitchToNote(pitch),
