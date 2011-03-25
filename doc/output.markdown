@@ -62,8 +62,8 @@ string with space separated hexadecimal values or an array of
 numbers.  The start sysex (0xf0) and end sysex (0xf7) bytes must be
 included in the message.  Nested messages are not allowed.
 
-### MIDIOutput.nrpn7(parameter, value)
-### MIDIOutput.nrpn14(parameter, value)
+### MIDIOutput.nrpn7(parameter, value, [time])
+### MIDIOutput.nrpn14(parameter, value, [time])
 
 Send a NRPN message consisting of a 14 bit NRPN `parameter` and a 7
 (`nrpn7`) or 14 (`nrpn14`) bit `value`.  No previous selection of the
