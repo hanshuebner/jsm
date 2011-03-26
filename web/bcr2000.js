@@ -3,14 +3,22 @@ $ = jQuery;
 editedControl = { changed: function () { return false; } };
 assignments = {};
 
+function loadPreset(presetNumber)
+{
+    console.log('load preset', presetNumber);
+    $('#presetNumber').html(presetNumber);
+}
+
 $(document).ready(function () {
 
     var TetraDefs = exports;                                // for now
 
     // preset selector
     function editPreset () {
+        var presetNumber = $(this).html();
         $('#choosePreset').css('display', 'none');
         $('#main').css('display', 'block');
+        loadPreset(presetNumber);
     }
 
     $('#choosePreset select')
