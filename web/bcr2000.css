@@ -2,17 +2,55 @@ html {
     font-family: "Lucida Sans", "Lucida Grande", Lucida, sans-serif;
 }
 
+#choosePreset {
+    font-size: 75%;
+}
+
+#choosePreset select {
+    width: 27em;
+}
+
+button.hiddenSubmit {
+    width: 0px;
+    height: 0px;
+    visibility: hidden;
+    display: inline;
+}
+
 #main {
-    width: 107ex;
-    height: 21.5em;
+    width: 112ex;
     background-color: #eee;
+    display: none;
+}
+
+#main > div, #main > div > div {
+    padding: 1em 2ex 1em 2ex;
+}
+
+#preset {
+    height: 1.5em;
+    background-color: #ccc;
+}
+
+#editor {
+    position: relative;
+}
+
+#bcr {
+    position: relative;
+}
+
+#bcr form {
+    height: 19em;
 }
 
 #control {
-    float: right;
+    position: absolute;
+    top: 0px;
+    right: 0px;
     width: 40ex;
     background-color: #ddd;
-    height: 100%;
+    height: 21em;
 }
 
 #control table {
@@ -26,12 +64,6 @@ html {
 
 #bcl .modified {
     background-color: #fcc;
-}
-
-//
-
-#bcr {
-    position: relative;
 }
 
 #bcr button {

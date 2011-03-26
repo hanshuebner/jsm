@@ -10,40 +10,63 @@
     <script type="text/javascript" src="lib/MochiKit/MochiKit.js"></script>
     <script type="text/javascript" src="bcr2000.js"></script>
     <script type="text/javascript">exports = {}</script>
-    <script type="text/javascript" src="../src/node_modules/tetra-defs.js"></script>
+    <script type="text/javascript" src="tetra-defs.js"></script>
   </head>
   <body>
+    <div id="choosePreset">
+      <h1>Select preset to edit</h1>
+      <form>
+        <select size="10">
+        </select>
+      </form>
+    </div>
     <div id="main">
-      <form id="bcr" onsubmit="return false" action="#">
-      </form>
-      <form id="control" onsubmit="return false" action="#">
-        <table>
-          <tr>
-            <th id="controlType">&nbsp;</th>
-            <th id="controlNumber">&nbsp;</th>
-          </tr>
-          <tr>
-            <td>Name</td>
-            <td><input id="controlName"/></td>
-          </tr>
-          <tr>
-            <td>Parameter</td>
-            <td><select id="parameter-name-list"></select></td>
-          </tr>
-          <tr>
-            <td colspan="2">BCL</td>
-          </tr>
-          <tr>
-            <td colspan="2"><textarea id="bcl" rows="7"></textarea></td>
-          </tr>
-          <tr>
-            <td colspan="2">
-              <button id="revert" disabled="disabled">Revert</button>
-              <button id="save" disabled="disabled">Save</button>
-            </td>
-          </tr>
-        </table>
-      </form>
+      <div id="preset">
+        <form>
+          Preset number <span id="presetNumber">99</span>
+          <label for="presetName"> name </label><input id="presetName" size="24" maxwidth="2" />
+          <button id="savePreset">Save</button>
+          <button type="submit" class="hiddenSubmit">submit</button>
+        </form>
+      </div>
+      <div id="editor">
+        <div id="bcr">
+          <form>
+            <button type="submit" class="hiddenSubmit">submit</button>
+          </form>
+        </div>
+        <div id="control">
+          <form>
+            <table>
+              <tr>
+                <th id="controlType">&nbsp;</th>
+                <th id="controlNumber">&nbsp;</th>
+              </tr>
+              <tr>
+                <td>Name</td>
+                <td><input id="controlName"/></td>
+              </tr>
+              <tr>
+                <td>Parameter</td>
+                <td><select id="parameter-name-list"></select></td>
+              </tr>
+              <tr>
+                <td colspan="2">BCL</td>
+              </tr>
+              <tr>
+                <td colspan="2"><textarea id="bcl" rows="7"></textarea></td>
+              </tr>
+              <tr>
+                <td colspan="2">
+                  <button id="revert" disabled="disabled">Revert</button>
+                  <button id="save" disabled="disabled">Save</button>
+                </td>
+              </tr>
+            </table>
+            <button type="submit" class="hiddenSubmit">submit</button>
+          </form>
+        </div>
+      </div>
     </div>
   </body>
 </html>

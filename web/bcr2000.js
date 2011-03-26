@@ -4,8 +4,33 @@ editedControl = { changed: function () { return false; } };
 assignments = {};
 
 $(document).ready(function () {
+
     var TetraDefs = exports;                                // for now
 
+    // preset selector
+    function editPreset () {
+        $('#choosePreset').css('display', 'none');
+        $('#main').css('display', 'block');
+    }
+
+    $('#choosePreset select')
+        .append(_.map(_.range(1, 33),
+                      function (i) {
+                          return OPTION(null, i)
+                      }));
+    $('#choosePreset form')
+        .submit(function () { return false; });
+    $('#choosePreset option')
+        .click(editPreset);
+
+    // preset editor
+    function savePreset () {
+        $('#main').css('display', 'none');
+        $('#choosePreset').css('display', 'block');
+    }
+
+    $('form').submit(function () { return false; });
+    
     function makeVirtualBcr2000() {
         function makeControlAttributes(type, number) {
             return { 'control-type': type,
@@ -26,7 +51,7 @@ $(document).ready(function () {
             elem.append(BR());
         }
 
-        var form = $('#bcr');
+        var form = $('#bcr form');
         _.each(_.range(1, 9), _.bind(makeEncoder, form));
         _.each(_.range(33, 57), _.bind(makeEncoder, form));
         _.each(_.range(33, 57), _.bind(makeButton, form));
@@ -151,6 +176,10 @@ $(document).ready(function () {
         .click(function () { editedControl.save() });
     $('#revert')
         .click(function () { editedControl.revert() });
+    $('#preset form')
+        .submit(function () { return false; });
+    $('#savePreset')
+        .click(savePreset);
 
     setInterval(pollForChanges, 250);
 });
