@@ -2,6 +2,14 @@ var fs = require('fs');
 var url = require('url');
 var _ = require('underscore');
 
+function http_error(message, status) {
+    if (!status) {
+        status = 500;
+    }
+    resp.writeHead(status, { 'Content-Type': 'text/plain' });
+    resp.end(message);
+}
+
 function dir (req, resp) {
     resp.writeHead(200, { 'Content-Type': 'application/json'});
     resp.end(JSON.stringify({ dir: _.select(fs.readdirSync("."), function (path) { return path.match(/\.syx$/); }) }));
@@ -11,9 +19,7 @@ function get (req, resp, filename) {
 
     var stats = fs.statSync(filename);
     if (!stats || !stats.isFile()) {
-        resp.writeHead(404, { 'Content-Type': 'text/plain' });
-        resp.end("Invalid filename");
-        return;
+        return http_error("invalid filename: " + filename, 404);
     }
 
     function decodeOneMessage(buf) {
@@ -43,9 +49,7 @@ function get (req, resp, filename) {
         }
     }
     catch (e) {
-        resp.writeHead(404, { 'Content-Type': 'text/plain' });
-        resp.end("error reading sysex file \"" + filename + "\": " + e);
-        return;
+        return http_error("error reading sysex file \"" + filename + "\": " + e, 404);
     }
 
     resp.writeHead(200, { 'Content-Type': 'application/json'});
@@ -61,23 +65,58 @@ function put (req, resp, filename) {
     req.on('end', function () {
         fs.stat(filename, function (error, stats) {
             if ((req.method == 'PUT') && !error) {
-                resp.writeHead(500, { 'Content-Type': 'text/plain' });
-                resp.end("can't PUT to existing file \"" + filename + "\"");
+                return http_error("can't PUT to existing file \"" + filename + "\"");
             } else {
                 var data;
                 try {
                     data = JSON.parse(buffer);
                 }
                 catch (e) {
-                    resp.writeHead(500, { 'Content-Type': 'text/plain' });
-                    resp.end("cannot parse JSON data: " + e);
-                    return;
+                    return http_error("cannot parse JSON data: " + e);
                 }
 
-                fs.writeFile(filename, data.preset, 'utf-8', function (error) {
+                if (!data.preset) {
+                    return http_error("uploaded JSON data does not contain a preset field");
+                }
+
+                var text = data.preset;
+                
+                var lines = text.split("\n");
+                var newlineTerminated = false;
+                if (text[text.length - 1] == "\n") {
+                    lines.pop();
+                    newlineTerminated = true;
+                }
+                // Allocate a buffer - The length is determined by the
+                // number of bytes in the string representing the BCL
+                // data plus 9 bytes per line to accommodate for the
+                // sysex header.
+                var buf = new Buffer(text.length + (newlineTerminated ? 0 : 1) + lines.length * 9);
+
+                var p = 0;                 // output pointer in buffer
+                var lineNumber = 0;        // BCL line number
+
+                function decodeOneLine(line) {
+                    buf[p++] = 0xf0;
+                    buf[p++] = 0x00;
+                    buf[p++] = 0x20;
+                    buf[p++] = 0x32;
+                    buf[p++] = 0x00;                     // device id 1, for now
+                    buf[p++] = 0x15;                     // model -> bcr2000
+                    buf[p++] = 0x20;                     // BCL message
+                    buf[p++] = (lineNumber >> 7) & 0x7f; // line number MSB
+                    buf[p++] = lineNumber & 0x7f;        // line number LSB
+                    p += buf.write(line, p, 'binary');
+                    buf[p++] = 0xf7;
+                    lineNumber++;
+                }
+
+                _.each(lines, decodeOneLine);
+                console.log("buffer length", buf.length, "bytes written", p);
+
+                fs.writeFile(filename, buf, 'binary', function (error) {
                     if (error) {
-                        resp.writeHead(500, { 'Content-Type': 'text/plain' });
-                        resp.end("cannot save data to file \"" + filename + "\": " + error);
+                        return http_error("cannot save data to file \"" + filename + "\": " + error);
                     } else {
                         resp.writeHead(200, { 'Content-Type': 'application/json'});
                         resp.end(JSON.stringify({ savedTo: filename }));
