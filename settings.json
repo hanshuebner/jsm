@@ -1,8 +1,0 @@
-{
-    "port" : 8100,
-
-    "default_host" : {
-        "root" : "web/"
-    }
-
-}
