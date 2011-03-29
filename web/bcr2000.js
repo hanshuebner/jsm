@@ -1,7 +1,13 @@
-$ = jQuery;
+var $ = jQuery;
 
-editedControl = { changed: function () { return false; } };
-assignments = {};
+var noEditedControl = { changed: function () { return false; } };
+var editedControl = noEditedControl;
+var assignments = {};
+
+function loadFile(filename)
+{
+    console.log('load file', filenae);
+}
 
 function loadPreset(presetNumber)
 {
@@ -13,12 +19,37 @@ $(document).ready(function () {
 
     var TetraDefs = exports;                                // for now
 
+    // yet another multi-page "framework"
+    function showPage(id, headline) {
+        $("#pages > div").css('display', 'none');
+        $('#headline')
+            .empty()
+            .append(_.toArray(arguments).slice(1));
+        if (id) {
+            $("#" + id).css('display', 'block');
+        }
+    }
+
+    // file selector
+    function editFile () {
+        var filename = $(this).html();
+        showPage();
+        $.getJSON("/bcr2000/" + filename, function (error, data) {
+            showPage('choosePreset', 'Choose a preset to edit');
+        });
+    }
+
     // preset selector
     function editPreset () {
         var presetNumber = $(this).html();
-        $('#choosePreset').css('display', 'none');
-        $('#main').css('display', 'block');
+        showPage('editPreset', 'Editing file ', SPAN(null, currentFilename), ' preset ', SPAN(null, presetNumber));
         loadPreset(presetNumber);
+        $('#control input, #control select, #control textarea')
+            .attr('disabled', 'disabled');
+    }
+
+    function saveFile () {
+        showPage('chooseFile', 'Choose file to edit');
     }
 
     $('#choosePreset select')
@@ -26,18 +57,18 @@ $(document).ready(function () {
                       function (i) {
                           return OPTION(null, i)
                       }));
-    $('#choosePreset form')
-        .submit(function () { return false; });
     $('#choosePreset option')
         .click(editPreset);
+    $('#saveFile')
+        .click(saveFile);
 
     // preset editor
     function savePreset () {
-        $('#main').css('display', 'none');
-        $('#choosePreset').css('display', 'block');
+        showPage('choosePreset', 'Choose preset to edit');
     }
 
-    $('form').submit(function () { return false; });
+    $('form')
+        .submit(function () { return false; });
     
     function makeVirtualBcr2000() {
         function makeControlAttributes(type, number) {
@@ -82,13 +113,23 @@ $(document).ready(function () {
     }
     
     function editControl() {
-        if (editedControl.uiButton != this) {
 
-            if (editedControl.changed()) {
-                if (!confirm('discard edits?')) {
-                    return;
-                }
+        if (editedControl.changed()) {
+            if (!confirm('discard edits?')) {
+                return;
             }
+        }
+
+        if (editedControl.uiButton == this) {
+
+            $(editedControl.uiButton).removeClass('selected');
+            $('#control input, #control select, #control textarea')
+                .val('')
+                .attr('disabled', 'disabled');
+            $('#controlType, #controlNumber').html('&nbsp;');
+            editedControl = noEditedControl;
+
+        } else {
 
             $(editedControl.uiButton).removeClass('selected');
             $(this).addClass('selected');
@@ -159,6 +200,9 @@ $(document).ready(function () {
             };
 
             editedControl.display();
+
+            $('#control input, #control select, #control textarea')
+                .removeAttr('disabled');
         }
     }
 
@@ -184,10 +228,25 @@ $(document).ready(function () {
         .click(function () { editedControl.save() });
     $('#revert')
         .click(function () { editedControl.revert() });
-    $('#preset form')
-        .submit(function () { return false; });
     $('#savePreset')
         .click(savePreset);
+
+    $.getJSON("/bcr2000/", function (data, status) {
+        if (status != 'success') {
+            console.log('error loading directory:', status);
+        } else {
+            console.log('dir', data.dir);
+            $('#chooseFile select')
+                .empty()
+                .append(_.map(data.dir,
+                              function (name) {
+                                  return OPTION(null, name)
+                              }));
+            $('#chooseFile option')
+                .click(editFile);
+            showPage('chooseFile', 'Choose file to edit');
+     }
+    });
 
     setInterval(pollForChanges, 250);
 });

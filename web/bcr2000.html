@@ -13,23 +13,26 @@
     <script type="text/javascript" src="tetra-defs.js"></script>
   </head>
   <body>
-    <div id="choosePreset">
-      <h1>Select preset to edit</h1>
-      <form>
-        <select size="10">
-        </select>
-      </form>
+    <div id="headline">
     </div>
-    <div id="main">
-      <div id="preset">
+    <div id="pages">
+      <div id="chooseFile">
+        <h1>Select file to edit</h1>
         <form>
-          Preset number <span id="presetNumber">99</span>
-          <label for="presetName"> name </label><input id="presetName" size="24" maxwidth="2" />
-          <button id="savePreset">Save</button>
-          <button type="submit" class="hiddenSubmit">submit</button>
+          <select size="10">
+          </select>
         </form>
       </div>
-      <div id="editor">
+      <div id="choosePreset">
+        <h1>Select preset to edit</h1>
+        <form>
+          <select size="10">
+          </select>
+          <br/>
+          <button id="saveFile">Save</button>
+        </form>
+      </div>
+      <div id="editPreset">
         <div id="bcr">
           <form>
             <button type="submit" class="hiddenSubmit">submit</button>

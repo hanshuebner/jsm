@@ -12,7 +12,15 @@ function http_error(message, status) {
 
 function dir (req, resp) {
     resp.writeHead(200, { 'Content-Type': 'application/json'});
-    resp.end(JSON.stringify({ dir: _.select(fs.readdirSync("."), function (path) { return path.match(/\.syx$/); }) }));
+    var dir = [];
+    _.each(fs.readdirSync("."),
+           function (path) {
+               path.replace(/(.*).syx$/,
+                            function (match, name) {
+                                dir.push(name);
+                            });
+           });
+    resp.end(JSON.stringify({ dir: dir }));
 }
 
 function get (req, resp, filename) {
@@ -135,14 +143,13 @@ exports.handleRequest = function (req, resp, nextHandler) {
         if (args[0] == "bcr2000") {
             args.shift();
             if (args[0]) {
-                switch (req.method)
-                {
+                switch (req.method) {
                 case 'GET':
-                    get(req, resp, args[0]);
+                    get(req, resp, args[0] + '.syx');
                     break;
                 case 'POST':
                 case 'PUT':
-                    put(req, resp, args[0]);
+                    put(req, resp, args[0] + '.syx');
                     break;
                 default:
                     throw "Unsupported request method: " + req.method;

@@ -2,11 +2,18 @@ html {
     font-family: "Lucida Sans", "Lucida Grande", Lucida, sans-serif;
 }
 
-#choosePreset {
+#headline {
+    height: 1em;
+    padding: 1em 2ex 1em 2ex;
+    background-color: #ccc;
+}
+
+#chooseFile, #choosePreset{
+    display: none;
     font-size: 75%;
 }
 
-#choosePreset select {
+#chooseFile select, #choosePreset select {
     width: 27em;
 }
 
@@ -17,22 +24,25 @@ button.hiddenSubmit {
     display: inline;
 }
 
-#main {
+#editPreset {
     width: 112ex;
     background-color: #eee;
     display: none;
 }
 
-#main > div, #main > div > div {
+#editPreset, #editPreset > div {
     padding: 1em 2ex 1em 2ex;
 }
 
-#preset {
-    height: 1.5em;
-    background-color: #ccc;
+#presetInfo span {
+    font-weight: bold;
 }
 
-#editor {
+#presetInfo button {
+    font-size: 100%;
+}
+
+#editPreset {
     position: relative;
 }
 
