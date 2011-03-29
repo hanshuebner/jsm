@@ -2,10 +2,18 @@ html {
     font-family: "Lucida Sans", "Lucida Grande", Lucida, sans-serif;
 }
 
+#pages > div {
+    padding: 1.5em 0ex 1.5em 4ex;
+}
+
 #headline {
     height: 1em;
     padding: 1em 2ex 1em 2ex;
     background-color: #ccc;
+}
+
+#headline span > span {
+    font-weight: bold;
 }
 
 #chooseFile, #choosePreset{
@@ -32,14 +40,6 @@ button.hiddenSubmit {
 
 #editPreset, #editPreset > div {
     padding: 1em 2ex 1em 2ex;
-}
-
-#presetInfo span {
-    font-weight: bold;
-}
-
-#presetInfo button {
-    font-size: 100%;
 }
 
 #editPreset {

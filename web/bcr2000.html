@@ -39,36 +39,41 @@
           </form>
         </div>
         <div id="control">
-          <form>
-            <table>
-              <tr>
-                <th id="controlType">&nbsp;</th>
-                <th id="controlNumber">&nbsp;</th>
-              </tr>
-              <tr>
-                <td>Name</td>
-                <td><input id="controlName"/></td>
-              </tr>
-              <tr>
-                <td>Parameter</td>
-                <td><select id="parameter-name-list"></select></td>
-              </tr>
-              <tr>
-                <td colspan="2">BCL</td>
-              </tr>
-              <tr>
-                <td colspan="2"><textarea id="bcl" rows="7"></textarea></td>
-              </tr>
-              <tr>
-                <td colspan="2">
-                  <button id="revert" disabled="disabled">Revert</button>
-                  <button id="save" disabled="disabled">Save</button>
-                </td>
-              </tr>
-            </table>
-            <button type="submit" class="hiddenSubmit">submit</button>
-          </form>
+          <div>
+            <form>
+              <table>
+                <tr>
+                  <th id="controlType">&nbsp;</th>
+                  <th id="controlNumber">&nbsp;</th>
+                </tr>
+                <tr>
+                  <td>Name</td>
+                  <td><input id="controlName"/></td>
+                </tr>
+                <tr>
+                  <td>Parameter</td>
+                  <td><select id="parameter-name-list"></select></td>
+                </tr>
+                <tr>
+                  <td colspan="2">BCL</td>
+                </tr>
+                <tr>
+                  <td colspan="2"><textarea id="bcl" rows="7"></textarea></td>
+                </tr>
+                <tr>
+                  <td colspan="2">
+                    <button id="revert" disabled="disabled">Revert</button>
+                    <button id="save" disabled="disabled">Save</button>
+                  </td>
+                </tr>
+              </table>
+              <button type="submit" class="hiddenSubmit">submit</button>
+            </form>
+          </div>
         </div>
+        <form>
+          <button id="savePreset">Save</button>
+        </form>
       </div>
     </div>
   </body>

@@ -1,8 +1,26 @@
 var $ = jQuery;
 
-var noEditedControl = { changed: function () { return false; } };
-var editedControl = noEditedControl;
-var assignments = {};
+var allPages = [];
+
+function Page(elementId)
+{
+    this.elementId = elementId;
+    allPages.push(this);
+}
+
+Page.prototype.$ = function () {
+    return $('#' + this.elementId);
+}
+
+Page.prototype.show = function ()
+{
+    _.each(allPages,
+           function (page) {
+               page.$.css('display', 'none');
+           });
+    this.$.trigger('show');
+    this.$.css('display', 'block');
+}
 
 function loadFile(filename)
 {
@@ -15,16 +33,93 @@ function loadPreset(presetNumber)
     $('#presetNumber').html(presetNumber);
 }
 
+function parseBCL(string)
+{
+    var retval = { originalString: string,
+                   temporaryPreset: { controls: {} },
+                   presets: [] };
+
+    function parseControl (command, chunk) {
+        if (command.replace(/^\$(encoder|button) +([0-9]+) *(|;.*)$/,
+                            function (match, type, id, name) {
+                                console.log('parseControl: name', name);
+                                name = name.replace(/; */, "");
+                                retval.temporaryPreset.controls[type + id] = {
+                                    name: name,
+                                    type: type,
+                                    id: id,
+                                    bcl: chunk
+                                };
+                            }) == command) {
+            console.log('error parsing "' + command + '"');
+        }
+    }
+    
+    var bclHandlers = {
+        rev: function (command) {
+            retval.rev = command;
+        },
+        global: function (command, chunk) {
+            retval.global = chunk;
+        },
+        preset: function (command, chunk) {
+            retval.temporaryPreset.presetInfo = chunk;
+        },
+        encoder: parseControl,
+        button: parseControl,
+        store: function (command) {
+            if (command.replace(/^\$store *([0-9]+)/,
+                                function (match, presetNumber) {
+                                    retval.presets[presetNumber - 1] = retval.temporaryPreset;
+                                    retval.temporaryPreset = { controls: {} };
+                                }) == command) {
+                console.log('error parsing "' + command + '"');
+            }
+        },
+        end: function () {
+        }
+    };
+
+    var currentCommand;
+    var currentChunk;
+
+    _.each(string.split(/\n/),
+           function (line) {
+               if (line.match(/^\$[a-z]+/)) {
+                   if (currentCommand) {
+                       if (bclHandlers[currentCommand]) {
+                           bclHandlers[currentCommand](currentChunk.shift(), currentChunk);
+                       } else {
+                           console.log('unsupported BCL command: "' + currentCommand + '"');
+                       }
+                   }
+                   currentCommand = line.replace(/\$([a-z]+).*/, "$1");
+                   currentChunk = [ line ];
+               } else {
+                   currentChunk.push(line);
+               }
+           });
+
+    return retval;
+}
+
+var parsedBCL;
+
 $(document).ready(function () {
 
     var TetraDefs = exports;                                // for now
+
+    var noEditedControl = { changed: function () { return false; } };
+    var editedControl = noEditedControl;
+    var assignments = {};
+    var currentFilename;
 
     // yet another multi-page "framework"
     function showPage(id, headline) {
         $("#pages > div").css('display', 'none');
         $('#headline')
             .empty()
-            .append(_.toArray(arguments).slice(1));
+            .append(SPAN(null, _.toArray(arguments).slice(1)));
         if (id) {
             $("#" + id).css('display', 'block');
         }
@@ -32,11 +127,25 @@ $(document).ready(function () {
 
     // file selector
     function editFile () {
-        var filename = $(this).html();
-        showPage();
-        $.getJSON("/bcr2000/" + filename, function (error, data) {
-            showPage('choosePreset', 'Choose a preset to edit');
+        currentFilename = $(this).html();
+        choosePreset();
+    }
+
+    function choosePreset() {
+        $.getJSON("/bcr2000/" + currentFilename, function (data, status) {
+            if (status == 'success') {
+                console.log('data loaded, length', data.preset.length);
+                parsedBCL = parseBCL(data.preset);
+                showPage('choosePreset', 'Choose a preset in file ', SPAN(null, currentFilename), ' to edit');
+            } else {
+                alert('could not load file ' + currentFilename + ": " + status);
+            }
         });
+    }
+
+    // preset editor
+    function savePreset () {
+        choosePreset();
     }
 
     // preset selector
@@ -61,11 +170,6 @@ $(document).ready(function () {
         .click(editPreset);
     $('#saveFile')
         .click(saveFile);
-
-    // preset editor
-    function savePreset () {
-        showPage('choosePreset', 'Choose preset to edit');
-    }
 
     $('form')
         .submit(function () { return false; });
