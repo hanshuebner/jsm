@@ -155,6 +155,71 @@ function serializeBCL (parsedBCL) {
 
 var parsedBCL;
 
+function ControlEditor(buttonElement)
+{
+    this.id = buttonElement.id;
+    this.uiButton = buttonElement;
+    this.controlType = $(buttonElement).attr('control-type');
+    this.controlNumber = $(buttonElement).attr('control-number');
+    this.name = '';
+    this.bcl = '';
+    this.parameter = undefined;
+}
+
+ControlEditor.prototype.display = function () {
+    $('#controlType').html(this.controlType);
+    $('#controlNumber').html(this.controlNumber);
+    $('#controlName').val(this.name || '');
+    $('#parameter-name-list')
+        .val(this.parameter ? this.parameter.index : "<not assigned>")
+        .attr('disabled', false);
+    $('#bcl')
+        .val(this.bcl || '');
+    $(this.uiButton).html(this.name);
+}
+
+ControlEditor.prototype.save = function () {
+    var parameter = TetraDefs.parameterDefinitions[$('#control select').val()];
+    var bcl = $('#bcl').val();
+    var name = $('#controlName').val();
+    if (parameter && (this.makeBcl(parameter) != bcl)) {
+        parameter = undefined;
+    }
+    this.name = name;
+    this.parameter = parameter;
+    this.bcl = bcl;
+    assignments[this.id] = editedControl;
+    // change button label
+    $('#' + this.id)
+        .empty()
+        .append(DIV(null, this.name));
+}
+
+ControlEditor.prototype.revert = function () {
+    this.display();
+}
+
+ControlEditor.prototype.makeBcl = function (parameter) {
+    return "$" + this.controlType + ' ' + this.controlNumber + "\n"
+        + '  .easypar NRPN ' + parameter.index + ' 1 ' + (parameter.min || 0) + ' ' + parameter.max + ' absolute/14' + "\n"
+        + '  .showvalue on' + "\n"
+        + '  .mode 1dot' + "\n"
+        + '  .resolution 10 50 100 500' + "\n";
+}
+
+ControlEditor.prototype.setEditedParameter = function (parameter) {
+    $('#bcl').val(this.makeBcl(parameter));
+    var editName = $('#controlName').val()
+    if ((editName == '') || (this.parameter && (editName == this.parameter.name))) {
+        $('#controlName').val(parameter.name);
+    }
+}
+
+ControlEditor.prototype.changed = function () {
+    return this.bcl != $('#bcl').val()
+        || this.name != $('#controlName').val();
+}
+
 $(document).ready(function () {
 
     var TetraDefs = exports;                                // for now
@@ -287,70 +352,7 @@ $(document).ready(function () {
             $(editedControl.uiButton).removeClass('selected');
             $(this).addClass('selected');
 
-            editedControl = assignments[this.id] || {
-
-                id: this.id,
-                uiButton: this,
-                controlType: $(this).attr('control-type'),
-                controlNumber: $(this).attr('control-number'),
-                name: '',
-                bcl: '',
-                parameter: undefined,
-
-                display: function () {
-                    $('#controlType').html(this.controlType);
-                    $('#controlNumber').html(this.controlNumber);
-                    $('#controlName').val(this.name || '');
-                    $('#parameter-name-list')
-                        .val(this.parameter ? this.parameter.index : "<not assigned>")
-                        .attr('disabled', false);
-                    $('#bcl')
-                        .val(this.bcl || '');
-                    $(this.uiButton).html(this.name);
-                },
-
-                save: function () {
-                    var parameter = TetraDefs.parameterDefinitions[$('#control select').val()];
-                    var bcl = $('#bcl').val();
-                    var name = $('#controlName').val();
-                    if (parameter && (this.makeBcl(parameter) != bcl)) {
-                        parameter = undefined;
-                    }
-                    this.name = name;
-                    this.parameter = parameter;
-                    this.bcl = bcl;
-                    assignments[this.id] = editedControl;
-                    // change button label
-                    $('#' + this.id)
-                        .empty()
-                        .append(DIV(null, this.name));
-                },
-
-                revert: function () {
-                    this.display();
-                },
-
-                makeBcl: function (parameter) {
-                    return "$" + this.controlType + ' ' + this.controlNumber + "\n"
-                        + '  .easypar NRPN ' + parameter.index + ' 1 ' + (parameter.min || 0) + ' ' + parameter.max + ' absolute/14' + "\n"
-                        + '  .showvalue on' + "\n"
-                        + '  .mode 1dot' + "\n"
-                        + '  .resolution 10 50 100 500' + "\n";
-                },
-
-                setEditedParameter: function (parameter) {
-                    $('#bcl').val(this.makeBcl(parameter));
-                    var editName = $('#controlName').val()
-                    if ((editName == '') || (this.parameter && (editName == this.parameter.name))) {
-                        $('#controlName').val(parameter.name);
-                    }
-                },
-
-                changed: function () {
-                    return this.bcl != $('#bcl').val()
-                        || this.name != $('#controlName').val();
-                }
-            };
+            editedControl = assignments[this.id] || new ControlEditor(this);
 
             editedControl.display();
 
