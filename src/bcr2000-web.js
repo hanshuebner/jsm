@@ -120,7 +120,6 @@ function put (req, resp, filename) {
                 }
 
                 _.each(lines, decodeOneLine);
-                console.log("buffer length", buf.length, "bytes written", p);
 
                 fs.writeFile(filename, buf, 'binary', function (error) {
                     if (error) {

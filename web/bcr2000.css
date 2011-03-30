@@ -92,6 +92,10 @@ button.hiddenSubmit {
     height: 2em;
 }
 
+#bcr button.button span {
+    font-size: 60%;
+}
+
 #bcr button.button div {
     font-size: 75%;
 }

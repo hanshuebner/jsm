@@ -29,6 +29,7 @@
           <select size="10">
           </select>
           <br/>
+          <button id="backToDirectory">Back</button>
           <button id="saveFile">Save</button>
         </form>
       </div>
@@ -62,8 +63,8 @@
                 </tr>
                 <tr>
                   <td colspan="2">
-                    <button id="revert" disabled="disabled">Revert</button>
-                    <button id="save" disabled="disabled">Save</button>
+                    <button id="revertControl" disabled="disabled">Revert</button>
+                    <button id="saveControl" disabled="disabled">Save</button>
                   </td>
                 </tr>
               </table>
@@ -72,7 +73,8 @@
           </div>
         </div>
         <form>
-          <button id="savePreset">Save</button>
+          <button id="backToFile">Back</button>
+          <span id="presetHasChanged"></span>
         </form>
       </div>
     </div>

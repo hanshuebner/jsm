@@ -1,4 +1,16 @@
+
+// imports
 var $ = jQuery;
+var TetraDefs;
+
+// constant to signify no current edited control
+var noEditedControl = { changed: function () { return false; } };
+
+// global application state
+var currentControlEditor = noEditedControl;
+var currentFilename;
+var currentFileChanged;
+var currentPresetChanged;
 
 var allPages = [];
 
@@ -27,10 +39,28 @@ function loadFile(filename)
     console.log('load file', filenae);
 }
 
+var assignments;
+
 function loadPreset(presetNumber)
 {
     console.log('load preset', presetNumber);
     $('#presetNumber').html(presetNumber);
+    currentPreset = parsedBCL.presets[presetNumber - 1];
+    assignments = {};
+    $("#bcr form button")
+        .each(function (index, button) {
+            if (currentPreset.controls[button.id]) {
+                assignments[button.id] = new ControlEditor(button);
+            }
+        });
+}
+
+function Control(name, type, id, bcl)
+{
+    this.name = name;
+    this.type = type;
+    this.id = id;
+    this.bcl = bcl;
 }
 
 function parseBCL(string)
@@ -43,12 +73,7 @@ function parseBCL(string)
         if (command.replace(/^\$(encoder|button) +([0-9]+) *(|;.*)$/,
                             function (match, type, id, name) {
                                 name = name.replace(/; */, "");
-                                retval.temporaryPreset.controls[type + id] = {
-                                    name: name,
-                                    type: type,
-                                    id: id,
-                                    bcl: chunk
-                                };
+                                retval.temporaryPreset.controls[type + id] = new Control(name, type, id, chunk);
                             }) == command) {
             console.log('error parsing "' + command + '"');
         }
@@ -59,6 +84,7 @@ function parseBCL(string)
             retval.rev = command;
         },
         global: function (command, chunk) {
+            chunk.unshift(command);
             retval.global = chunk;
         },
         preset: function (command, chunk) {
@@ -116,16 +142,18 @@ function serializeBCL (parsedBCL) {
         retval += chunk.join("\n") + "\n";
     }
 
+    addChunk(parsedBCL.global);
+
     function addPreset(preset) {
         retval += "$preset\n";
         addChunk(preset.presetInfo);
         _.each(['encoder', 'button'],
                function (type) {
-                   _.each(_.range(64),
+                   _.each(_.range(1, 65),
                           function (controlId) {
                               var control = preset.controls[type + controlId];
                               if (control) {
-                                  retval += "$" + type + " " + (controlId + 1);
+                                  retval += "$" + type + " " + controlId;
                                   if (control.name) {
                                       retval += " ;" + control.name;
                                   }
@@ -161,21 +189,21 @@ function ControlEditor(buttonElement)
     this.uiButton = buttonElement;
     this.controlType = $(buttonElement).attr('control-type');
     this.controlNumber = $(buttonElement).attr('control-number');
-    this.name = '';
-    this.bcl = '';
+    this.control = currentPreset.controls[this.id] || new Control('', this.controlType, this.controlNumber, []); /* id is controlNumber ? */
     this.parameter = undefined;
+    $(buttonElement).children('span').html(this.control ? this.control.name : '');
 }
 
 ControlEditor.prototype.display = function () {
     $('#controlType').html(this.controlType);
     $('#controlNumber').html(this.controlNumber);
-    $('#controlName').val(this.name || '');
+    $('#controlName').val(this.control.name || '');
     $('#parameter-name-list')
         .val(this.parameter ? this.parameter.index : "<not assigned>")
         .attr('disabled', false);
     $('#bcl')
-        .val(this.bcl || '');
-    $(this.uiButton).html(this.name);
+        .val(this.control.bcl.join('\n') || '');
+    $(this.uiButton).children('span').html(this.control.name);
 }
 
 ControlEditor.prototype.save = function () {
@@ -185,14 +213,17 @@ ControlEditor.prototype.save = function () {
     if (parameter && (this.makeBcl(parameter) != bcl)) {
         parameter = undefined;
     }
-    this.name = name;
+    this.control.name = name;
     this.parameter = parameter;
-    this.bcl = bcl;
-    assignments[this.id] = editedControl;
+    this.control.bcl = bcl.split('\n');
+    assignments[this.id] = currentControlEditor;
+    currentPreset.controls[this.id] = this.control;
     // change button label
     $('#' + this.id)
         .empty()
-        .append(DIV(null, this.name));
+        .append(SPAN(null, this.control.name));
+    currentFileChanged = true;
+    currentPresetChanged = true;
 }
 
 ControlEditor.prototype.revert = function () {
@@ -200,8 +231,7 @@ ControlEditor.prototype.revert = function () {
 }
 
 ControlEditor.prototype.makeBcl = function (parameter) {
-    return "$" + this.controlType + ' ' + this.controlNumber + "\n"
-        + '  .easypar NRPN ' + parameter.index + ' 1 ' + (parameter.min || 0) + ' ' + parameter.max + ' absolute/14' + "\n"
+    return '  .easypar NRPN ' + parameter.index + ' 1 ' + (parameter.min || 0) + ' ' + parameter.max + ' absolute/14' + "\n"
         + '  .showvalue on' + "\n"
         + '  .mode 1dot' + "\n"
         + '  .resolution 10 50 100 500' + "\n";
@@ -216,18 +246,13 @@ ControlEditor.prototype.setEditedParameter = function (parameter) {
 }
 
 ControlEditor.prototype.changed = function () {
-    return this.bcl != $('#bcl').val()
-        || this.name != $('#controlName').val();
+    return this.control.bcl.join('\n') != $('#bcl').val()
+        || this.control.name != $('#controlName').val();
 }
 
 $(document).ready(function () {
 
-    var TetraDefs = exports;                                // for now
-
-    var noEditedControl = { changed: function () { return false; } };
-    var editedControl = noEditedControl;
-    var assignments = {};
-    var currentFilename;
+    TetraDefs = exports;                                // for now
 
     // yet another multi-page "framework"
     function showPage(id, headline) {
@@ -257,11 +282,6 @@ $(document).ready(function () {
         });
     }
 
-    // preset editor
-    function savePreset () {
-        choosePreset();
-    }
-
     // preset selector
     function editPreset () {
         var presetNumber = $(this).html();
@@ -271,8 +291,17 @@ $(document).ready(function () {
             .attr('disabled', 'disabled');
     }
 
-    function saveFile () {
+    function chooseFile () {
         showPage('chooseFile', 'Choose file to edit');
+    }
+
+    function saveFile () {
+        $.post("/bcr2000/" + currentFilename,
+               serializeJSON({ preset: serializeBCL(parsedBCL) }),
+               function () {
+                   chooseFile();
+               },
+              'json');
     }
 
     $('#choosePreset select')
@@ -297,11 +326,11 @@ $(document).ready(function () {
         }
 
         function makeEncoder(id) {
-            this.append(BUTTON(makeControlAttributes('encoder', id), ''));
+            this.append(BUTTON(makeControlAttributes('encoder', id), SPAN(null, '')));
         }
 
         function makeButton(id) {
-            this.append(BUTTON(makeControlAttributes('button', id), ''));
+            this.append(BUTTON(makeControlAttributes('button', id), SPAN(null, '')));
         }
 
         function br(elem) {
@@ -332,29 +361,31 @@ $(document).ready(function () {
     
     function editControl() {
 
-        if (editedControl.changed()) {
+        if (currentControlEditor.changed()) {
             if (!confirm('discard edits?')) {
                 return;
             }
         }
 
-        if (editedControl.uiButton == this) {
+        if (currentControlEditor.uiButton == this) {
 
-            $(editedControl.uiButton).removeClass('selected');
+            // deselect
+
+            $(currentControlEditor.uiButton).removeClass('selected');
             $('#control input, #control select, #control textarea')
                 .val('')
                 .attr('disabled', 'disabled');
             $('#controlType, #controlNumber').html('&nbsp;');
-            editedControl = noEditedControl;
+            currentControlEditor = noEditedControl;
 
         } else {
 
-            $(editedControl.uiButton).removeClass('selected');
+            $(currentControlEditor.uiButton).removeClass('selected');
             $(this).addClass('selected');
 
-            editedControl = assignments[this.id] || new ControlEditor(this);
+            currentControlEditor = assignments[this.id] || new ControlEditor(this);
 
-            editedControl.display();
+            currentControlEditor.display();
 
             $('#control input, #control select, #control textarea')
                 .removeAttr('disabled');
@@ -362,14 +393,24 @@ $(document).ready(function () {
     }
 
     function selectParameter() {
-        editedControl.setEditedParameter(TetraDefs.parameterDefinitions[$(this).val()]);
+        currentControlEditor.setEditedParameter(TetraDefs.parameterDefinitions[$(this).val()]);
     }
 
     function pollForChanges() {
-        if (editedControl.changed()) {
-            $('#save, #revert').removeAttr('disabled');
+        // fixme attributes should be manipulated only when there have been changes
+        if (currentControlEditor.changed()) {
+            $('#saveControl, #revertControl').removeAttr('disabled');
         } else {
-            $('#save, #revert').attr('disabled', 'disabled');
+            $('#saveControl, #revertControl').attr('disabled', 'disabled');
+        }
+        if (currentFileChanged) {
+            $('#saveFile').removeAttr('disabled');
+        } else {
+            $('#saveFile').attr('disabled', 'disabled');
+        }
+        $('#presetHasChanged').empty();
+        if (currentPresetChanged) {
+            $('#presetHasChanged').html("Preset has been edited");
         }
     }
 
@@ -379,12 +420,14 @@ $(document).ready(function () {
         .click(editControl);
     $('#control select')
         .change(selectParameter);
-    $('#save')
-        .click(function () { editedControl.save() });
-    $('#revert')
-        .click(function () { editedControl.revert() });
-    $('#savePreset')
-        .click(savePreset);
+    $('#saveControl')
+        .click(function () { currentControlEditor.save() });
+    $('#revertControl')
+        .click(function () { currentControlEditor.revert() });
+    $('#backToDirectory')
+        .click(chooseFile);
+    $('#backToFile')
+        .click(choosePreset);
 
     $.getJSON("/bcr2000/", function (data, status) {
         if (status != 'success') {
@@ -399,7 +442,7 @@ $(document).ready(function () {
                               }));
             $('#chooseFile option')
                 .click(editFile);
-            showPage('chooseFile', 'Choose file to edit');
+            chooseFile();
      }
     });
 
