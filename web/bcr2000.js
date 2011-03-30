@@ -42,7 +42,6 @@ function parseBCL(string)
     function parseControl (command, chunk) {
         if (command.replace(/^\$(encoder|button) +([0-9]+) *(|;.*)$/,
                             function (match, type, id, name) {
-                                console.log('parseControl: name', name);
                                 name = name.replace(/; */, "");
                                 retval.temporaryPreset.controls[type + id] = {
                                     name: name,
@@ -64,6 +63,13 @@ function parseBCL(string)
         },
         preset: function (command, chunk) {
             retval.temporaryPreset.presetInfo = chunk;
+            _.each(chunk,
+                   function (line) {
+                       line.replace(/^ *\.name +' *([^ ].+?) *' *(|;.*)$/,
+                                    function (match, presetName) {
+                                        retval.temporaryPreset.name = presetName;
+                                    });
+                   });
         },
         encoder: parseControl,
         button: parseControl,
@@ -103,6 +109,50 @@ function parseBCL(string)
     return retval;
 }
 
+function serializeBCL (parsedBCL) {
+    var retval = parsedBCL.rev + "\n";
+
+    function addChunk(chunk) {
+        retval += chunk.join("\n") + "\n";
+    }
+
+    function addPreset(preset) {
+        retval += "$preset\n";
+        addChunk(preset.presetInfo);
+        _.each(['encoder', 'button'],
+               function (type) {
+                   _.each(_.range(64),
+                          function (controlId) {
+                              var control = preset.controls[type + controlId];
+                              if (control) {
+                                  retval += "$" + type + " " + (controlId + 1);
+                                  if (control.name) {
+                                      retval += " ;" + control.name;
+                                  }
+                                  retval += "\n";
+                                  addChunk(control.bcl);
+                              }
+                          });
+               });
+    }
+
+    _.each(_.range(32), function (presetId) {
+        var preset = parsedBCL.presets[presetId];
+        if (preset) {
+            addPreset(preset);
+            retval += "$store " + (presetId + 1) + "\n";
+        }
+    });
+
+    if (parsedBCL.temporaryPreset.presetInfo.length) {
+        addPreset(parsedBCL.temporaryPreset);
+    }
+
+    retval += "$end\n";
+
+    return retval;
+}
+
 var parsedBCL;
 
 $(document).ready(function () {
@@ -134,7 +184,6 @@ $(document).ready(function () {
     function choosePreset() {
         $.getJSON("/bcr2000/" + currentFilename, function (data, status) {
             if (status == 'success') {
-                console.log('data loaded, length', data.preset.length);
                 parsedBCL = parseBCL(data.preset);
                 showPage('choosePreset', 'Choose a preset in file ', SPAN(null, currentFilename), ' to edit');
             } else {
