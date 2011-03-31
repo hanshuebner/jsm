@@ -51,6 +51,8 @@ function loadPreset(presetNumber)
         .each(function (index, button) {
             if (currentPreset.controls[button.id]) {
                 assignments[button.id] = new ControlEditor(button);
+            } else {
+                $(button).children('span').html('');
             }
         });
 }
@@ -190,8 +192,23 @@ function ControlEditor(buttonElement)
     this.controlType = $(buttonElement).attr('control-type');
     this.controlNumber = $(buttonElement).attr('control-number');
     this.control = currentPreset.controls[this.id] || new Control('', this.controlType, this.controlNumber, []); /* id is controlNumber ? */
-    this.parameter = undefined;
-    $(buttonElement).children('span').html(this.control ? this.control.name : '');
+    var bcl = this.control.bcl.join('\n');
+    function assignParameter (match, nrpn) {
+        var parameter = TetraDefs.parameterDefinitions[nrpn];
+        if (this.id == 'encoder1') {
+            console.log('nrpn', nrpn,
+                        'parameter', parameter,
+                        'name', this.control.name,
+                        'bcl', this.control.bcl.join('\n'),
+                        'param-bcl', this.makeBcl(parameter));
+        }
+        if (parameter && this.makeBcl(parameter) == this.control.bcl.join('\n')) {
+            this.parameter = parameter;
+        }
+    }
+    bcl.replace(/ NRPN \d+ (\d+)/, _.bind(assignParameter, this));
+    // determine if this control has previously been assigned to a parameter
+    $(buttonElement).children('span').html(this.control.name);
 }
 
 ControlEditor.prototype.display = function () {
@@ -231,18 +248,15 @@ ControlEditor.prototype.revert = function () {
 }
 
 ControlEditor.prototype.makeBcl = function (parameter) {
-    return '  .easypar NRPN ' + parameter.index + ' 1 ' + (parameter.min || 0) + ' ' + parameter.max + ' absolute/14' + "\n"
+    return '  .easypar NRPN 1 ' + parameter.index + ' ' + (parameter.min || 0) + ' ' + parameter.max + ' absolute/14' + "\n"
         + '  .showvalue on' + "\n"
         + '  .mode 1dot' + "\n"
-        + '  .resolution 10 50 100 500' + "\n";
+        + '  .resolution 10 50 100 500';
 }
 
 ControlEditor.prototype.setEditedParameter = function (parameter) {
     $('#bcl').val(this.makeBcl(parameter));
-    var editName = $('#controlName').val()
-    if ((editName == '') || (this.parameter && (editName == this.parameter.name))) {
-        $('#controlName').val(parameter.name);
-    }
+    $('#controlName').val(parameter.name);
 }
 
 ControlEditor.prototype.changed = function () {
@@ -268,18 +282,18 @@ $(document).ready(function () {
     // file selector
     function editFile () {
         currentFilename = $(this).html();
-        choosePreset();
-    }
-
-    function choosePreset() {
         $.getJSON("/bcr2000/" + currentFilename, function (data, status) {
             if (status == 'success') {
                 parsedBCL = parseBCL(data.preset);
-                showPage('choosePreset', 'Choose a preset in file ', SPAN(null, currentFilename), ' to edit');
+                choosePreset();
             } else {
                 alert('could not load file ' + currentFilename + ": " + status);
             }
         });
+    }
+
+    function choosePreset() {
+        showPage('choosePreset', 'Choose a preset in file ', SPAN(null, currentFilename), ' to edit');
     }
 
     // preset selector
@@ -389,6 +403,7 @@ $(document).ready(function () {
 
             $('#control input, #control select, #control textarea')
                 .removeAttr('disabled');
+            $('#control select').focus();
         }
     }
 
