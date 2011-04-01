@@ -1,11 +1,13 @@
 var fs = require('fs');
 var url = require('url');
 var _ = require('underscore');
+var BCR2000 = require('BCR2000');
 
 function http_error(message, status) {
     if (!status) {
         status = 500;
     }
+    console.log('http_error', status, ':', message);
     resp.writeHead(status, { 'Content-Type': 'text/plain' });
     resp.end(message);
 }
@@ -30,31 +32,8 @@ function get (req, resp, filename) {
         return http_error("invalid filename: " + filename, 404);
     }
 
-    function decodeOneMessage(buf) {
-        if (buf[0] != 0xf0
-            || buf[1] != 0x00
-            || buf[2] != 0x20
-            || buf[3] != 0x32) {
-            throw "not a Behringer sysex message";
-        }
-        if (buf[6] == 0x20) {
-            return buf.slice(9, buf.length);
-        }
-    }
-
-    var response = '';
     try {
-        var buf = fs.readFileSync(filename);
-        for (var i = 0; i < buf.length; ) {
-            if (buf[i] != 0xf0) {
-                throw "expected sysex begin";
-            }
-            var j;
-            for (j = i; buf[j] != 0xf7; j++)
-                ;
-            response += decodeOneMessage(buf.slice(i, j)) + "\n";
-            i = j + 1;
-        }
+        var response = BCR2000.readSysexFile(filename);
     }
     catch (e) {
         return http_error("error reading sysex file \"" + filename + "\": " + e, 404);
@@ -87,48 +66,15 @@ function put (req, resp, filename) {
                     return http_error("uploaded JSON data does not contain a preset field");
                 }
 
-                var text = data.preset;
-                
-                var lines = text.split("\n");
-                var newlineTerminated = false;
-                if (text[text.length - 1] == "\n") {
-                    lines.pop();
-                    newlineTerminated = true;
+                try {
+                    BCR2000.writeSysexFile(filename, data.preset);
                 }
-                // Allocate a buffer - The length is determined by the
-                // number of bytes in the string representing the BCL
-                // data plus 9 bytes per line to accommodate for the
-                // sysex header.
-                var buf = new Buffer(text.length + (newlineTerminated ? 0 : 1) + lines.length * 9);
-
-                var p = 0;                 // output pointer in buffer
-                var lineNumber = 0;        // BCL line number
-
-                function decodeOneLine(line) {
-                    buf[p++] = 0xf0;
-                    buf[p++] = 0x00;
-                    buf[p++] = 0x20;
-                    buf[p++] = 0x32;
-                    buf[p++] = 0x00;                     // device id 1, for now
-                    buf[p++] = 0x15;                     // model -> bcr2000
-                    buf[p++] = 0x20;                     // BCL message
-                    buf[p++] = (lineNumber >> 7) & 0x7f; // line number MSB
-                    buf[p++] = lineNumber & 0x7f;        // line number LSB
-                    p += buf.write(line, p, 'binary');
-                    buf[p++] = 0xf7;
-                    lineNumber++;
+                catch (error) {
+                    return http_error("cannot save data to file \"" + filename + "\": " + error);
                 }
 
-                _.each(lines, decodeOneLine);
-
-                fs.writeFile(filename, buf, 'binary', function (error) {
-                    if (error) {
-                        return http_error("cannot save data to file \"" + filename + "\": " + error);
-                    } else {
-                        resp.writeHead(200, { 'Content-Type': 'application/json'});
-                        resp.end(JSON.stringify({ savedTo: filename }));
-                    }
-                });
+                resp.writeHead(200, { 'Content-Type': 'application/json'});
+                resp.end(JSON.stringify({ savedTo: filename }));
             }
         });
     });
