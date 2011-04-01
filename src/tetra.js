@@ -11,7 +11,7 @@ var bcrInput = new MIDI.MIDIInput('BCR2000');
 var bcrOutput = new MIDI.MIDIOutput('BCR2000');
 var currentPreset = [];
 
-function decodePackedMS(packed)
+function decodePackedMSB(packed)
 {
     var retval = [];
     var highBits;
@@ -26,11 +26,15 @@ function decodePackedMS(packed)
     return retval;
 }
 
+Array.prototype.toHexString = function (length) {
+    return this.slice(0, length).map(function (x) { return x.toString(16) }).join(' ');
+}
+
 function handleTetraSysex(message) {
-    switch (message.slice(0, 4).map(function (x) { return x.toString(16) }).join(' ')) {
+    switch (message.asHexString(4)) {
     case 'f0 1 26 3':
         console.log('received current preset from Tetra');
-        currentPreset = decodePackedMS(message.slice(4));
+        currentPreset = decodePackedMSB(message.slice(4));
         break;
     }        
 }
