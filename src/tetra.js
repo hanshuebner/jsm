@@ -16,8 +16,11 @@
 
 // Copyright 2011 Hans Huebner, All Rights Reserved
 
+var _ = require('underscore');
 var MIDI = require('MIDI');
 var BCR2000 = require('bcr2000');
+var fs = require('fs');
+var tetraDefs = require('tetra-defs');
 
 // Open the MIDI ports that we are using to talk to both the synth and
 // the BCR2000
@@ -52,7 +55,8 @@ var bcrPrivateSysex = {
 
 var bcrSysexRequest = {
     selectPreset: 'f0 0 20 32 0 15 22',
-    requestData: 'f0 0 20 32 0 15 40'
+    requestData: 'f0 0 20 32 0 15 40',
+    sendBclMessage: 'f0 0 20 32 0 15 20'
 };
 
 // Sysex replies from the BCR start with this string.
@@ -81,8 +85,8 @@ function decodePackedMSB(packed)
 
 // Utility function to transform arrays into strings for easy
 // comparison.
-Array.prototype.toHexString = function (length) {
-    return this.slice(0, length).map(function (x) { return x.toString(16) }).join(' ');
+function toHexString (array, length) {
+    return array.slice(0, length).map(function (x) { return x.toString(16) }).join(' ');
 }
 
 // currentTetraPreset represents the unpacked parameter set of the
@@ -94,19 +98,31 @@ var currentTetraPreset;
 
 // Handle sysex message received from the Tetra
 function handleTetraSysex(message) {
-    switch (message.asHexString(4)) {
+    switch (toHexString(message, 4)) {
     case tetraSysexResponse.editBufferDataDump:
         currentTetraPreset = decodePackedMSB(message.slice(4));
-        console.log('requesting BCR2000 presets');
-        bcrOutput.sysex(bcrSysex.requestData + ' 7f f7');
+        selectBcrPreset();
+        console.log('done');
         break;
     }        
 }
 
+function handleTetraProgramChange(program) {
+    console.log('Tetra program change', program);
+    tetraOutput.sysex(tetraSysexRequest.requestEditBufferDump);
+}
+
 // Handle NRPN message received from either the Tetra or the BCR2000
+var lastNrpnName;
 function handleNrpn(parameter, value) {
     currentTetraPreset[parameter] = value;
-    ((this == tetraInput) ? bcrOutput : tetraOutput).nrpn(parameter, value);
+    ((this == tetraInput) ? bcrOutput : tetraOutput).nrpn14(parameter, value);
+    var nrpnName = tetraDefs.parameterDefinitions[parameter].name;
+    if (nrpnName != lastNrpnName) {
+        process.stdout.write('\n');
+        lastNrpnName = nrpnName;
+    }
+    process.stdout.write("\r" + nrpnName + ": " + value + "                     ");
 }
 
 // Current BCR2000 presets in text form during reception
@@ -122,42 +138,61 @@ var currentBcrPreset = 0;
 // BCR2000, then transmit all NRPN parameter values that are assigned
 // to any of the controls on the BCR2000 in the current preset.
 function selectBcrPreset () {
-    bcrOutput.sysex(bcrSysex.selectPreset + ' ' + currentBcrPreset.toString(16) + ' f7');
-    _.each(parsedBCL.presets[currentBcrPreset].controls,
-           function (control) {
-               if (control.nrpn != undefined) {
-                   bcrOutput.nrpn14(control.nrpn, currentTetraPreset[control.nrpn]);
-               }
-           });
+    console.log('select BCR preset', currentBcrPreset);
+    bcrOutput.sysex(bcrSysexRequest.selectPreset + ' ' + currentBcrPreset.toString(16) + ' f7');
+    if (!parsedBCL.presets[currentBcrPreset]) {
+        console.log('no preset', currentBcrPreset, 'in BCR2000');
+    } else {
+        _.each(parsedBCL.presets[currentBcrPreset].controls,
+               function (control) {
+                   if (control.nrpn != undefined) {
+                       bcrOutput.nrpn14(control.nrpn, currentTetraPreset[control.nrpn]);
+                   }
+               });
+    }
+}
+
+function handleReceivedBclLine(message)
+{
+    // Received BCL line.  Verify line number, store received BCL
+    // line, handle $end BCL command by parsing the BCR2000
+    // presets and select the initial page displayed.
+    var receivedLineNumber = (message[7] << 7) | message[8];
+    if (receivedLineNumber == 0) {
+        bclText = '';
+        expectedBclLineNumber = 0;
+    }
+    if (receivedLineNumber != expectedBclLineNumber) {
+        console.log('unexpected BCL line received from BCR2000 - expected', expectedBclLineNumber, 'got', receivedLineNumber);
+    }
+    expectedBclLineNumber++;
+    var line = new Buffer(message.slice(9, message.length - 1)).toString() + '\n';
+    bclText += line;
+    if (line.match(/ *\$end/)) {
+        console.log('received preset info from BCR2000, parsing');
+        parsedBCL = BCR2000.parseBCL(bclText);
+        selectBcrPreset();
+        console.log('ready');
+    }
 }
 
 // Handle a standard Behringer sysex message that has been received.
 function handleBehringerSysex(message) {
     switch (message[6]) {
-    case 0x20:
-        // Received BCL line.  Verify line number, store received BCL
-        // line, handle $end BCL command by parsing the BCR2000
-        // presets and select the initial page displayed.
-        var receivedLineNumber = (message[7] << 7) | message[8];
-        if (receivedLineNumber == 0) {
-            bclText = '';
-            expectedBclLine = 0;
+    case 0x21:
+        switch (message.length) {
+        case 11:
+            // BCL Reply
+            break;
+        case 33:
+            // Send Preset Name
+            break;
+        default:
+            console.log('received $21 message with unexpected length', message.length, message);
+            break;
         }
-        if (receivedLineNumber != expectedBclLineNumber) {
-            console.log('unexpected BCL line received from BCR2000');
-        }
-        expectedBclLineNumber++;
-        var line = new Buffer(message.slice(9, message.length - 1)).toString() + '\n';
-        bclText += line;
-        if (line.match(/ *\$end/)) {
-            console.log('received preset info from BCR2000, parsing');
-            parsedBCL = BCR2000.parseBCL(bclText);
-            selectBcrPreset();
-            console.log('ready');
-        }
-        break;
     default:
-        console.log('unknown Behringer sysex message received, command:', message[6]);
+        console.log('unexpected Behringer sysex message received, command:', message[6]);
     }
 }
 
@@ -166,7 +201,7 @@ function handleBehringerSysex(message) {
 // this program or a Behringer standard message which will then be
 // processed by handleBehringerSysex()
 function handleBcrSysex(message) {
-    switch (message.asHexString(4)) {
+    switch (toHexString(message, 4)) {
     case bcrPrivateSysex.previousPreset:
         if (currentBcrPreset > 0) {
             currentBcrPreset--;
@@ -188,8 +223,14 @@ function handleBcrSysex(message) {
 // Set up event handlers for NRPN and sysex messages for both MIDI inputs.
 tetraInput.on('sysex', handleTetraSysex);
 tetraInput.on('nrpn14', handleNrpn);
+tetraInput.on('programChange', handleTetraProgramChange);
 bcrInput.on('sysex', handleBcrSysex);
 bcrInput.on('nrpn14', handleNrpn);
+
+var bcrPresetFilename = process.argv[2];
+
+console.log('reading BCR2000 presets from file', bcrPresetFilename);
+parsedBCL = BCR2000.parseBCL(BCR2000.readSysexFile(bcrPresetFilename));
 
 console.log('requesting Tetra edit buffer');
 tetraOutput.sysex(tetraSysexRequest.requestEditBufferDump);
