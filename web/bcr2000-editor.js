@@ -269,13 +269,16 @@ $(document).ready(function () {
     TetraDefs = exports;                                // for now
 
     // yet another multi-page "framework"
-    function showPage(id, headline) {
+    var currentPath = '';
+    function showPage(path, headline) {
+        var id = path[0];
         $("#pages > div").css('display', 'none');
         $('#headline')
             .empty()
             .append(SPAN(null, _.toArray(arguments).slice(1)));
         if (id) {
             $("#" + id).css('display', 'block');
+            currentPath = document.location.hash = '#' + path.join('/');
         }
     }
 
@@ -293,20 +296,20 @@ $(document).ready(function () {
     }
 
     function choosePreset() {
-        showPage('choosePreset', 'Choose a preset in file ', SPAN(null, currentFilename), ' to edit');
+        showPage(['choosePreset', currentFilename], 'Choose a preset in file ', SPAN(null, currentFilename), ' to edit');
     }
 
     // preset selector
     function editPreset () {
         var presetNumber = $(this).html();
-        showPage('editPreset', 'Editing file ', SPAN(null, currentFilename), ' preset ', SPAN(null, presetNumber));
+        showPage(['editPreset', currentFilename, presetNumber], 'Editing file ', SPAN(null, currentFilename), ' preset ', SPAN(null, presetNumber));
         loadPreset(presetNumber);
         $('#control input, #control select, #control textarea')
             .attr('disabled', 'disabled');
     }
 
     function chooseFile () {
-        showPage('chooseFile', 'Choose file to edit');
+        showPage(['chooseFile'], 'Choose file to edit');
     }
 
     function saveFile () {
@@ -412,6 +415,12 @@ $(document).ready(function () {
     }
 
     function pollForChanges() {
+        // check for "back" button usage
+        if (document.location.hash != currentPath) {
+            console.log('move to', document.location.hash);
+            showPage(document.location.hash.substr(1).split('/'));
+        }
+
         // fixme attributes should be manipulated only when there have been changes
         if (currentControlEditor.changed()) {
             $('#saveControl, #revertControl').removeAttr('disabled');
