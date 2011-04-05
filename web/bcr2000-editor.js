@@ -12,38 +12,37 @@ var currentFilename;
 var currentFileChanged;
 var currentPresetChanged;
 
-var allPages = [];
+var allPages = {};
 
 function Page(elementId)
 {
     this.elementId = elementId;
-    allPages.push(this);
+    allPages[elementId] = this;
 }
 
 Page.prototype.$ = function () {
     return $('#' + this.elementId);
 }
 
+var currentPath = '';
 Page.prototype.show = function ()
 {
     _.each(allPages,
            function (page) {
-               page.$.css('display', 'none');
+               page.$().css('display', 'none');
            });
-    this.$.trigger('show');
-    this.$.css('display', 'block');
-}
-
-function loadFile(filename)
-{
-    console.log('load file', filenae);
+    this.$().css('display', 'block');
+    $('#headline').empty();
+    var path = _.toArray(arguments);
+    this.$().trigger('show', path);
+    path.unshift(this.elementId);
+    currentPath = document.location.hash = '#' + path.join('/');
 }
 
 var assignments;
 
 function loadPreset(presetNumber)
 {
-    console.log('load preset', presetNumber);
     $('#presetNumber').html(presetNumber);
     currentPreset = parsedBCL.presets[presetNumber - 1];
     assignments = {};
@@ -195,13 +194,6 @@ function ControlEditor(buttonElement)
     var bcl = this.control.bcl.join('\n');
     function assignParameter (match, nrpn) {
         var parameter = TetraDefs.parameterDefinitions[nrpn];
-        if (this.id == 'encoder1') {
-            console.log('nrpn', nrpn,
-                        'parameter', parameter,
-                        'name', this.control.name,
-                        'bcl', this.control.bcl.join('\n'),
-                        'param-bcl', this.makeBcl(parameter));
-        }
         if (parameter && this.makeBcl(parameter) == this.control.bcl.join('\n')) {
             this.parameter = parameter;
         }
@@ -268,57 +260,58 @@ $(document).ready(function () {
 
     TetraDefs = exports;                                // for now
 
-    // yet another multi-page "framework"
-    var currentPath = '';
-    function showPage(path, headline) {
-        var id = path[0];
-        $("#pages > div").css('display', 'none');
-        $('#headline')
-            .empty()
-            .append(SPAN(null, _.toArray(arguments).slice(1)));
-        if (id) {
-            $("#" + id).css('display', 'block');
-            currentPath = document.location.hash = '#' + path.join('/');
-        }
-    }
+    var chooseFile = new Page('chooseFile');
+    chooseFile.$().bind('show',
+                        function () {
+                            $('#headline').html('Choose file to edit');
+                        });
 
-    // file selector
-    function editFile () {
-        currentFilename = $(this).html();
-        $.getJSON("/bcr2000/" + currentFilename, function (data, status) {
-            if (status == 'success') {
-                parsedBCL = parseBCL(data.preset);
-                choosePreset();
-            } else {
-                alert('could not load file ' + currentFilename + ": " + status);
-            }
-        });
-    }
-
-    function choosePreset() {
-        showPage(['choosePreset', currentFilename], 'Choose a preset in file ', SPAN(null, currentFilename), ' to edit');
-    }
+    var choosePreset = new Page('choosePreset');
+    choosePreset.$().bind('show',
+                          function (event, filename) {
+                              loadFile(filename, function () {
+                                  $('#headline').append(SPAN(null, 'Choose a preset in file ', SPAN(null, filename), ' to edit'));
+                              });
+                          });
 
     // preset selector
-    function editPreset () {
-        var presetNumber = $(this).html();
-        showPage(['editPreset', currentFilename, presetNumber], 'Editing file ', SPAN(null, currentFilename), ' preset ', SPAN(null, presetNumber));
-        loadPreset(presetNumber);
-        $('#control input, #control select, #control textarea')
-            .attr('disabled', 'disabled');
-    }
+    var editPreset = new Page('editPreset');
+    editPreset.$().bind('show',
+                        function (event, filename, presetNumber) {
 
-    function chooseFile () {
-        showPage(['chooseFile'], 'Choose file to edit');
-    }
+                            function displayEditor() {
+                                $('#headline').append('Editing file ', SPAN(null, currentFilename), ' preset ', SPAN(null, presetNumber));
+                                loadPreset(presetNumber);
+                                $('#control input, #control select, #control textarea')
+                                    .attr('disabled', 'disabled');
+                            }
+
+                            loadFile(filename, displayEditor);
+                        });
 
     function saveFile () {
         $.post("/bcr2000/" + currentFilename,
                serializeJSON({ preset: serializeBCL(parsedBCL) }),
                function () {
-                   chooseFile();
+                   chooseFile.show();
                },
               'json');
+    }
+
+    function loadFile(filename, callback) {
+        if (filename != currentFilename) {
+            currentFilename = filename;
+            $.getJSON("/bcr2000/" + currentFilename, function (data, status) {
+                if (status == 'success') {
+                    parsedBCL = parseBCL(data.preset);
+                    callback();
+                } else {
+                    alert('could not load file ' + currentFilename + ": " + status);
+                }
+            });
+        } else {
+            callback();
+        }
     }
 
     $('#choosePreset select')
@@ -327,7 +320,9 @@ $(document).ready(function () {
                           return OPTION(null, i)
                       }));
     $('#choosePreset option')
-        .click(editPreset);
+        .click(function () {
+            editPreset.show(currentFilename, $(this).html());
+        });
     $('#saveFile')
         .click(saveFile);
 
@@ -417,8 +412,9 @@ $(document).ready(function () {
     function pollForChanges() {
         // check for "back" button usage
         if (document.location.hash != currentPath) {
-            console.log('move to', document.location.hash);
-            showPage(document.location.hash.substr(1).split('/'));
+            var path = document.location.hash.substr(1).split('/');
+            var id = path.shift();
+            allPages[id].show.apply(allPages[id], path);
         }
 
         // fixme attributes should be manipulated only when there have been changes
@@ -449,15 +445,21 @@ $(document).ready(function () {
     $('#revertControl')
         .click(function () { currentControlEditor.revert() });
     $('#backToDirectory')
-        .click(chooseFile);
+        .click(function () { chooseFile.show() });
     $('#backToFile')
-        .click(choosePreset);
+        .click(function () { choosePreset.show(currentFilename) });
+
+    // file selector
+    function editFile () {
+        loadFile($(this).html(), function () {
+            choosePreset.show(currentFilename);
+        });
+    }
 
     $.getJSON("/bcr2000/", function (data, status) {
         if (status != 'success') {
             console.log('error loading directory:', status);
         } else {
-            console.log('dir', data.dir);
             $('#chooseFile select')
                 .empty()
                 .append(_.map(data.dir,
@@ -466,9 +468,13 @@ $(document).ready(function () {
                               }));
             $('#chooseFile option')
                 .click(editFile);
-            chooseFile();
-     }
+     }                                                      // 
     });
+
+    if (document.location.hash == "") {
+        document.location.hash = "#chooseFile";
+    }
+    console.log('starting at', document.location.hash);
 
     setInterval(pollForChanges, 250);
 });
