@@ -1,0 +1,9 @@
+[submodule "antinode"]
+	path = antinode
+	url = git@github.com:hanshuebner/antinode
+[submodule "web/tetra-web"]
+	path = web/tetra-web
+	url = bknr.net:/home/git/tetra-web
+[submodule "web/live-web-components"]
+	path = web/live-web-components
+	url = bknr.net:/home/git/live-web-components
