@@ -35,7 +35,7 @@ function newSocketClient(client) {
     });
     client.on('disconnect', function () {
         console.log('client disconnect');
-        process.stdin.removeAllListeners();
+        process.stdin.removeAllListeners('data');
     });
 }
 
