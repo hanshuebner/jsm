@@ -7,3 +7,6 @@
 [submodule "web/live-web-components"]
 	path = web/live-web-components
 	url = bknr.net:/home/git/live-web-components
+[submodule "osc-web"]
+	path = osc-web
+	url = git@github.com:hanshuebner/osc-web.git
