@@ -303,7 +303,9 @@ function makeWebClientController(hub, port) {
             hub.removeListener('parameterChange', parameterChange);
             hub.removeListener('presetChange', presetChange);
         });
-        presetChange(hub.currentPreset);
+        if (hub.currentPreset) {
+            presetChange(hub.currentPreset);
+        }
     }
 
     socket.on('connection', newSocketClient);
