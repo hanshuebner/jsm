@@ -82,6 +82,7 @@ function makeTetraController(hub) {
         case tetraSysexResponse.editBufferDataDump:
             currentTetraPreset = decodePackedMSB(message.slice(4));
             console.log('Received edit buffer information from Tetra');
+            hub.emit('presetChange', currentTetraPreset);
             break;
         }        
     }
@@ -143,7 +144,7 @@ function makeBCR2000Controller (hub) {
     // Send a preset selection message for the current preset to the
     // BCR2000, then transmit all NRPN parameter values that are assigned
     // to any of the controls on the BCR2000 in the current preset.
-    function selectBcrPreset () {
+    function selectBcrPreset (tetraPreset) {
         console.log('select BCR preset', currentBcrPreset);
         bcrOutput.sysex(bcrSysexRequest.selectPreset + ' ' + currentBcrPreset.toString(16) + ' f7');
         if (!parsedBCL.presets[currentBcrPreset]) {
@@ -152,7 +153,7 @@ function makeBCR2000Controller (hub) {
             _.each(parsedBCL.presets[currentBcrPreset].controls,
                    function (control) {
                        if (control.nrpn != undefined) {
-                           bcrOutput.nrpn14(control.nrpn, currentTetraPreset[control.nrpn]);
+                           bcrOutput.nrpn14(control.nrpn, tetraPreset[control.nrpn]);
                        }
                    });
         }
@@ -177,7 +178,7 @@ function makeBCR2000Controller (hub) {
         if (line.match(/ *\$end/)) {
             console.log('received preset info from BCR2000, parsing');
             parsedBCL = BCR2000.parseBCL(bclText);
-            selectBcrPreset();
+            selectBcrPreset(hub.currentPreset);
         }
     }
 
@@ -210,13 +211,13 @@ function makeBCR2000Controller (hub) {
         case bcrPrivateSysex.previousPreset:
             if (currentBcrPreset > 0) {
                 currentBcrPreset--;
-                selectBcrPreset();
+                selectBcrPreset(hub.currentPreset);
             }
             break;
         case bcrPrivateSysex.nextPreset:
             if (currentBcrPreset < 31) {
                 currentBcrPreset++;
-                selectBcrPreset();
+                selectBcrPreset(hub.currentPreset);
             }
             break;
         case bcrBehringerSysex:
@@ -244,6 +245,8 @@ function makeBCR2000Controller (hub) {
             bcrOutput.nrpn14(parameter, value);
         }
     });
+
+    hub.on('presetChange', selectBcrPreset);
 }
 
 function makeWebClientController(hub, port) {
@@ -263,7 +266,7 @@ function makeWebClientController(hub, port) {
         }
 
         function nrpnToWebName(nrpn) {
-            return tetraDefs.parameterDefinitions[nrpn].name.toLowerCase().replace(/ /g, '-');
+            return tetraDefs.parameterDefinitions[nrpn] && tetraDefs.parameterDefinitions[nrpn].name.toLowerCase().replace(/ /g, '-');
         }
 
         function parameterChange (parameter, value, from) {
@@ -272,6 +275,16 @@ function makeWebClientController(hub, port) {
             }
         }
         hub.on('parameterChange', parameterChange);
+        function presetChange (preset) {
+            console.log('sending info to web client');
+            for (var i = 0; i < preset.length; i++) {
+                var parameterName = nrpnToWebName(i);
+                if (parameterName) {
+                    client.send('set ' + parameterName + ' ' + preset[i]);
+                }
+            }
+        }
+        hub.on('presetChange', presetChange);
         client.on('message', function (message) {
             var args = message.split(/ +/);
             var command = args.shift();
@@ -288,7 +301,9 @@ function makeWebClientController(hub, port) {
         client.on('disconnect', function () {
             console.log('client disconnect');
             hub.removeListener('parameterChange', parameterChange);
+            hub.removeListener('presetChange', presetChange);
         });
+        presetChange(hub.currentPreset);
     }
 
     socket.on('connection', newSocketClient);
@@ -296,10 +311,10 @@ function makeWebClientController(hub, port) {
 
 // OSC
 
-function makeOscController(hub, host, portIn, portOut)
+function makeOscController(hub, listenPort, host, port)
 {
-    var server = new OSC.Server(4343);
-    var client = new OSC.Client(4344, '192.168.5.153');
+    var server = new OSC.Server(listenPort);
+    var client = new OSC.Client(host, port);
 
     var sequencerStartNrpns = [ tetraDefs.parameterNameMap["SEQ TRACK 1 STEP 1"],
                                 tetraDefs.parameterNameMap["SEQ TRACK 2 STEP 1"],
@@ -308,8 +323,12 @@ function makeOscController(hub, host, portIn, portOut)
 
     server.on('message', function (message, sender) {
         sender.name = 'OSC-' + sender.address + ':' + sender.port;
+        if (sender.address != host) {
+            console.log('WARNING, incoming OSC packet from different host', sender.address);
+        }
         var address = message.shift();
         var value = message.shift();
+        console.log('received', address, 'value', value);
         address.replace(/\/sequencer\/seq-(\d+)-(\d+)(.*)/, function (match, sequencerNumber, stepNumber, suffix) {
             var nrpn = sequencerStartNrpns[sequencerNumber] + parseInt(stepNumber);
             if (suffix == "-reset") {
@@ -323,18 +342,52 @@ function makeOscController(hub, host, portIn, portOut)
         });
     });
 
-    hub.on('parameterChange', function (parameter, value) {
-        client.send(new OSC.Message('/foo/parameter', value));
+    function setControl (parameter, value) {
+        if (parameter >= sequencerStartNrpns[0] && parameter < (sequencerStartNrpns[0] + 64)) {
+            var index = parameter - sequencerStartNrpns[0];
+            var sequencer = Math.floor(index / 16);
+            var step = index % 16;
+            var address = '/sequencer/seq-' + sequencer + '-' + step;
+            client.send(address, (value > 125) ? 0 : (value * (1 / 125)));
+            if (sequencer == 0) {
+                client.send(address + '-rest', (value == 127) ? 1 : 0);
+            }
+            client.send(address + '-reset', (value == 126) ? 1 : 0);
+        }
+    }
+
+    hub.on('parameterChange', setControl);
+
+    hub.on('presetChange', function (preset) {
+        console.log('sending info to TouchOSC');
+        for (var i = sequencerStartNrpns[0]; i < sequencerStartNrpns[0] + 64; i++) {
+            setControl(i, preset[i]);
+        }
     });
 }
 
 var hub = new events.EventEmitter();
 
-makeOscController(hub, 4343, '192.168.5.153', 4344);
+makeOscController(hub, 4343, '192.168.5.146', 4344);
 makeWebClientController(hub, 8100);
-makeTetraController(hub);
-makeBCR2000Controller(hub);
+try {
+    makeTetraController(hub);
+}
+catch (e) {
+    console.log("can't make Tetra controller:", e);
+}
+try {
+    makeBCR2000Controller(hub);
+}
+catch (e) {
+    console.log("can't make BCR2000 controller:", e);
+}
 
 hub.on('parameterChange', function (parameter, value, from) {
     console.log('from', from.name, 'parameter', parameter, 'value', value);
+});
+
+hub.on('presetChange', function (preset) {
+    console.log('saving current preset in hub');
+    hub.currentPreset = preset;
 });

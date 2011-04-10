@@ -28,7 +28,7 @@
                      :scalef "0.0"
                      :scalet "1.0"
                      :color "gray"
-                     :type "push"
+                     :type "toggle"
                      :local_off "true")
             (control :name (format nil "seq-0-~D-reset" i)
                      :x 55
@@ -38,7 +38,7 @@
                      :scalef "0.0"
                      :scalet "1.0"
                      :color "red"
-                     :type "push"
+                     :type "toggle"
                      :local_off "true")
             (control :name (format nil "seq-0-~D" i)
                      :x 80
@@ -60,7 +60,7 @@
                      :scalef "0.0"
                      :scalet "1.0"
                      :color "red"
-                     :type "push"
+                     :type "toggle"
                      :local_off "true")
             (control :name (format nil "seq-1-~D" i)
                      :x 330
@@ -82,7 +82,7 @@
                      :scalef "0.0"
                      :scalet "1.0"
                      :color "red"
-                     :type "push"
+                     :type "toggle"
                      :local_off "true")
             (control :name (format nil "seq-2-~D" i)
                      :x 470
@@ -104,7 +104,7 @@
                      :scalef "0.0"
                      :scalet "1.0"
                      :color "red"
-                     :type "push"
+                     :type "toggle"
                      :local_off "true")
             (control :name (format nil "seq-3-~D" i)
                      :x 610
