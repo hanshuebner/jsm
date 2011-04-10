@@ -20,7 +20,7 @@
         (attribute "name" "sequencer")
         (dotimes (i 16)
           (let ((y (+ 25 (* i 61))))
-            (control :name (format nil "seq-0-rest")
+            (control :name (format nil "seq-0-~D-rest" i)
                      :x 30
                      :y y
                      :w 20
@@ -30,7 +30,7 @@
                      :color "gray"
                      :type "push"
                      :local_off "true")
-            (control :name (format nil "seq-0-reset")
+            (control :name (format nil "seq-0-~D-reset" i)
                      :x 55
                      :y y
                      :w 20
@@ -52,7 +52,7 @@
                      :response "absolute"
                      :inverted "false"
                      :centered "false")
-            (control :name (format nil "seq-1-reset")
+            (control :name (format nil "seq-1-~D-reset" i)
                      :x 300
                      :y y
                      :w 20
@@ -74,7 +74,7 @@
                      :response "absolute"
                      :inverted "false"
                      :centered "false")
-            (control :name (format nil "seq-2-reset")
+            (control :name (format nil "seq-2-~D-reset" i)
                      :x 440
                      :y y
                      :w 20
@@ -96,7 +96,7 @@
                      :response "absolute"
                      :inverted "false"
                      :centered "false")
-            (control :name (format nil "seq-3-reset")
+            (control :name (format nil "seq-3-~D-reset" i)
                      :x 580
                      :y y
                      :w 20
