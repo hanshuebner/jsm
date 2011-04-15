@@ -260,7 +260,7 @@ function makeWebClientController(hub, port) {
     var socket = io.listen(server);
 
     function newSocketClient(client) {
-        client.name = 'Web-' + client.connection.remoteAddress;
+        client.name = 'Web-' + client.connection.remoteAddress + ':' + client.connection.remotePort;
         function webNameToNrpn(webName) {
             return tetraDefs.parameterNameMap[webName.toUpperCase().replace(/-/g, ' ')];
         }
@@ -271,6 +271,7 @@ function makeWebClientController(hub, port) {
 
         function parameterChange (parameter, value, from) {
             if (from != client) {
+                console.log('web parameter change', parameter, '=>', value, 'from', from.name, 'to', client.name);
                 client.send('set ' + nrpnToWebName(parameter) + ' ' + value);
             }
         }
