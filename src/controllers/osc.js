@@ -23,25 +23,33 @@ exports.make = function(hub)
         return address;
     }
     
-    function parameterChange (parameter, value) {
+    function parameterChangeToBundle (bundle, parameter, value) {
         if (parameter >= sequencerStartNrpns[0] && parameter < (sequencerStartNrpns[0] + 64)) {
             var index = parameter - sequencerStartNrpns[0];
             var sequencer = Math.floor(index / 16);
             var step = index % 16;
             var address = '/sequencer/seq-' + sequencer + '-' + step;
-            this.send(address, (value > 125) ? 0 : (value * (1 / 125)));
+            bundle.append(address, (value > 125) ? 0 : (value * (1 / 125)));
             if (sequencer == 0) {
-                this.send(address + '-rest', (value == 127) ? 1 : 0);
+                bundle.append(address + '-rest', (value == 127) ? 1 : 0);
             }
-            this.send(address + '-reset', (value == 126) ? 1 : 0);
+            bundle.append(address + '-reset', (value == 126) ? 1 : 0);
         }
+    }
+
+    function parameterChange (parameter, value) {
+        var bundle = new OSC.Bundle;
+        parameterChangeToBundle(bundle, parameter, value);
+        this.send(bundle);
     }
 
     function presetChange (preset) {
         console.log('sending info to TouchOSC');
+        var bundle = new OSC.Bundle;
         for (var i = sequencerStartNrpns[0]; i < sequencerStartNrpns[0] + 64; i++) {
-            this.parameterChange(i, preset[i]);
+            parameterChangeToBundle(bundle, i, preset[i]);
         }
+        this.send(bundle);
     }
     browser.on('serviceUp', function (info) {
         console.log('detected osc server in network', info.serviceName);
