@@ -21,6 +21,7 @@ var events = require('events');
 var _ = require('underscore');
 var OSC = require('osc');
 var MIDI = require('MIDI');
+var mdns = require('mdns');
 var BCR2000 = require('bcr2000');
 var antinode = require('antinode');
 var io = require('socket.io');
@@ -271,7 +272,6 @@ function makeWebClientController(hub, port) {
 
         function parameterChange (parameter, value, from) {
             if (from != client) {
-                console.log('web parameter change', parameter, '=>', value, 'from', from.name, 'to', client.name);
                 client.send('set ' + nrpnToWebName(parameter) + ' ' + value);
             }
         }
@@ -314,21 +314,52 @@ function makeWebClientController(hub, port) {
 
 // OSC
 
-function makeOscController(hub, listenPort, host, port)
+function makeOscController(hub, listenPort)
 {
     var server = new OSC.Server(listenPort);
-    var client = new OSC.Client(host, port);
+    var browser = mdns.createBrowser(mdns.udp('osc'));
+    var clients = {};
 
     var sequencerStartNrpns = [ tetraDefs.parameterNameMap["SEQ TRACK 1 STEP 1"],
                                 tetraDefs.parameterNameMap["SEQ TRACK 2 STEP 1"],
                                 tetraDefs.parameterNameMap["SEQ TRACK 3 STEP 1"],
                                 tetraDefs.parameterNameMap["SEQ TRACK 4 STEP 1"] ];
 
-    server.on('message', function (message, sender) {
-        sender.name = 'OSC-' + sender.address + ':' + sender.port;
-        if (sender.address != host) {
-            console.log('WARNING, incoming OSC packet from different host', sender.address);
+    function findAddress(info) {
+        var address = _.detect(info.addresses, function (address) { return address.match(/^[0-9.]+$/) });
+        if (!address) {
+            throw({ message: 'none of the addresses reported by the OSC seem to be a IPv4 address' });
         }
+        return address;
+    }
+    
+    browser.on('serviceUp', function (info) {
+        console.log('detected osc server', info.serviceName);
+        try {
+            address = findAddress(info);
+            clients[address] = new OSC.Client(address, info.port);
+        }
+        catch (e) {
+            console.log(e.type, ':', e.message);
+        }
+    });
+    browser.on('serviceDown', function (info) {
+        console.log('osc server left', info.serviceName);
+        try {
+            address = findAddress(info);
+            delete clients[address];
+        }
+        catch (e) {
+            console.log(e.type, ':', e.message);
+        }
+    });
+    browser.start();
+
+    server.on('message', function (message, sender) {
+        if (!clients[sender.address]) {
+            console.log('WARNING, received message from yet-unknown client', sender.address);
+        }
+        sender.name = 'OSC-' + sender.address + ':' + sender.port;
         var address = message.shift();
         var value = message.shift();
         console.log('received', address, 'value', value);
@@ -351,11 +382,13 @@ function makeOscController(hub, listenPort, host, port)
             var sequencer = Math.floor(index / 16);
             var step = index % 16;
             var address = '/sequencer/seq-' + sequencer + '-' + step;
-            client.send(address, (value > 125) ? 0 : (value * (1 / 125)));
-            if (sequencer == 0) {
-                client.send(address + '-rest', (value == 127) ? 1 : 0);
-            }
-            client.send(address + '-reset', (value == 126) ? 1 : 0);
+            _.each(clients, function (client) {
+                client.send(address, (value > 125) ? 0 : (value * (1 / 125)));
+                if (sequencer == 0) {
+                    client.send(address + '-rest', (value == 127) ? 1 : 0);
+                }
+                client.send(address + '-reset', (value == 126) ? 1 : 0);
+            });
         }
     }
 
