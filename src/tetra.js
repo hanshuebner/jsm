@@ -334,29 +334,28 @@ function makeOscController(hub, listenPort)
     }
     
     browser.on('serviceUp', function (info) {
-        console.log('detected osc server', info.serviceName);
-        try {
-            address = findAddress(info);
-            clients[address] = new OSC.Client(address, info.port);
-        }
-        catch (e) {
-            console.log(e.type, ':', e.message);
+        console.log('detected osc server in network', info.serviceName);
+        if (info.serviceName.match(/ \(TouchOSC\)$/)) {
+            console.log('connecting new TouchOSC client');
+            try {
+                address = findAddress(info);
+                clients[info.serviceName] = new OSC.Client(address, info.port);
+            }
+            catch (e) {
+                console.log(e.type, ':', e.message);
+            }
+        } else {
+            console.log('not a TouchOSC service, ignoring');
         }
     });
     browser.on('serviceDown', function (info) {
         console.log('osc server left', info.serviceName);
-        try {
-            address = findAddress(info);
-            delete clients[address];
-        }
-        catch (e) {
-            console.log(e.type, ':', e.message);
-        }
+        delete clients[info.serviceName];
     });
     browser.start();
 
     server.on('message', function (message, sender) {
-        if (!clients[sender.address]) {
+        if (!_.detect(clients, function (client) { return sender.address == client.host })) {
             console.log('WARNING, received message from yet-unknown client', sender.address);
         }
         sender.name = 'OSC-' + sender.address + ':' + sender.port;
