@@ -16,3 +16,6 @@
 [submodule "lib/midivent"]
 	path = lib/midivent
 	url = git@github.com:hanshuebner/midivent.git
+[submodule "lib/node_mdns"]
+	path = lib/node_mdns
+	url = git@github.com:agnat/node_mdns
