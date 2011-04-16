@@ -277,7 +277,6 @@ function makeWebClientController(hub, port) {
         }
         hub.on('parameterChange', parameterChange);
         function presetChange (preset) {
-            console.log('sending info to web client');
             for (var i = 0; i < preset.length; i++) {
                 var parameterName = nrpnToWebName(i);
                 if (parameterName) {
@@ -304,9 +303,6 @@ function makeWebClientController(hub, port) {
             hub.removeListener('parameterChange', parameterChange);
             hub.removeListener('presetChange', presetChange);
         });
-        if (hub.currentPreset) {
-            presetChange(hub.currentPreset);
-        }
     }
 
     socket.on('connection', newSocketClient);
@@ -333,13 +329,38 @@ function makeOscController(hub, listenPort)
         return address;
     }
     
+    function parameterChange (parameter, value) {
+        if (parameter >= sequencerStartNrpns[0] && parameter < (sequencerStartNrpns[0] + 64)) {
+            var index = parameter - sequencerStartNrpns[0];
+            var sequencer = Math.floor(index / 16);
+            var step = index % 16;
+            var address = '/sequencer/seq-' + sequencer + '-' + step;
+            this.send(address, (value > 125) ? 0 : (value * (1 / 125)));
+            if (sequencer == 0) {
+                this.send(address + '-rest', (value == 127) ? 1 : 0);
+            }
+            this.send(address + '-reset', (value == 126) ? 1 : 0);
+        }
+    }
+
+    function presetChange (preset) {
+        console.log('sending info to TouchOSC');
+        for (var i = sequencerStartNrpns[0]; i < sequencerStartNrpns[0] + 64; i++) {
+            this.parameterChange(i, preset[i]);
+        }
+    }
     browser.on('serviceUp', function (info) {
         console.log('detected osc server in network', info.serviceName);
         if (info.serviceName.match(/ \(TouchOSC\)$/)) {
             console.log('connecting new TouchOSC client');
             try {
                 address = findAddress(info);
-                clients[info.serviceName] = new OSC.Client(address, info.port);
+                client = new OSC.Client(address, info.port);
+                clients[info.serviceName] = client;
+                client.parameterChange = parameterChange;
+                client.presetChange = presetChange;
+                hub.on('parameterChange', _.bind(parameterChange, client));
+                hub.on('presetChange', _.bind(presetChange, client));
             }
             catch (e) {
                 console.log(e.type, ':', e.message);
@@ -361,7 +382,7 @@ function makeOscController(hub, listenPort)
         sender.name = 'OSC-' + sender.address + ':' + sender.port;
         var address = message.shift();
         var value = message.shift();
-        console.log('received', address, 'value', value);
+//        console.log('received', address, 'value', value);
         address.replace(/\/sequencer\/seq-(\d+)-(\d+)(.*)/, function (match, sequencerNumber, stepNumber, suffix) {
             var nrpn = sequencerStartNrpns[sequencerNumber] + parseInt(stepNumber);
             if (suffix == "-reset") {
@@ -374,36 +395,21 @@ function makeOscController(hub, listenPort)
             hub.emit('parameterChange', nrpn, value, sender);
         });
     });
-
-    function setControl (parameter, value) {
-        if (parameter >= sequencerStartNrpns[0] && parameter < (sequencerStartNrpns[0] + 64)) {
-            var index = parameter - sequencerStartNrpns[0];
-            var sequencer = Math.floor(index / 16);
-            var step = index % 16;
-            var address = '/sequencer/seq-' + sequencer + '-' + step;
-            _.each(clients, function (client) {
-                client.send(address, (value > 125) ? 0 : (value * (1 / 125)));
-                if (sequencer == 0) {
-                    client.send(address + '-rest', (value == 127) ? 1 : 0);
-                }
-                client.send(address + '-reset', (value == 126) ? 1 : 0);
-            });
-        }
-    }
-
-    hub.on('parameterChange', setControl);
-
-    hub.on('presetChange', function (preset) {
-        console.log('sending info to TouchOSC');
-        for (var i = sequencerStartNrpns[0]; i < sequencerStartNrpns[0] + 64; i++) {
-            setControl(i, preset[i]);
-        }
-    });
 }
 
 var hub = new events.EventEmitter();
+hub.currentPreset = [];
+_.each(_.range(192), function(parameter) { hub.currentPreset[parameter] = 0; });
+hub.on('presetChange', function (preset) {
+    hub.currentPreset = preset;
+});
+hub.on('newListener', function (event, listener) {
+    if (event == 'presetChange') {
+        listener(hub.currentPreset);
+    }
+});
 
-makeOscController(hub, 4343, '192.168.5.146', 4344);
+makeOscController(hub, 4343);
 makeWebClientController(hub, 8100);
 try {
     makeTetraController(hub);
@@ -419,10 +425,7 @@ catch (e) {
 }
 
 hub.on('parameterChange', function (parameter, value, from) {
-    console.log('from', from.name, 'parameter', parameter, 'value', value);
+    console.log('hub parameter change, parameter', parameter, 'value', value, 'from', from && from.name);
+    hub.currentPreset[parameter] = value;
 });
 
-hub.on('presetChange', function (preset) {
-    console.log('saving current preset in hub');
-    hub.currentPreset = preset;
-});
