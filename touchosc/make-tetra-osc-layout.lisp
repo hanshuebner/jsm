@@ -19,9 +19,197 @@
       (with-element "tabpage"
         (attribute "name" "sequencer")
         (dotimes (i 16)
-          (let ((y (+ 25 (* i 61))))
+          (let ((y (+ 25 (* i 61)))
+                (x 25)
+                seq-0-space seq-1-space seq-2-space seq-3-space)
+            (control :name (format nil "seq-3-~D-reset" i)
+                     :x x
+                     :y y
+                     :w 20
+                     :h 57
+                     :scalef "0.0"
+                     :scalet "1.0"
+                     :color "red"
+                     :type "toggle"
+                     :local_off "true")
+            (incf x 25)
+            (control :name (format nil "seq-3-~D" i)
+                     :x x
+                     :y y
+                     :w 57
+                     :h 57
+                     :color "orange"
+                     :scalef "0.0"
+                     :scalet "1.0"
+                     :type "rotaryh"
+                     :response "absolute"
+                     :inverted "false"
+                     :centered "false")
+            (incf x 70)
+            (when (zerop i)
+              (control :name "seq-3-next-dest"
+                     :x x
+                     :y y
+                     :w 20
+                     :h 57
+                     :scalef "0.0"
+                     :scalet "1.0"
+                     :color "orange"
+                     :type "push"
+                     :local_off "false")
+              (control :name "seq-3-dest"
+                       :x x
+                       :y (+ y 60)
+                       :w 20
+                       :h 177
+                       :scalef "0.0"
+                       :scalet "1.0"
+                       :color "orange"
+                       :type "labelv"
+                       :text ""
+                       :size 12
+                       :background "true"
+                       :outline "true")
+              (control :name "seq-3-label"
+                       :x x
+                       :y 936
+                       :w 20
+                       :h 60
+                       :scalef "0.0"
+                       :scalet "1.0"
+                       :color "gray"
+                       :type "labelv"
+                       :text "dHJhY2sgNA=="
+                       :size 12
+                       :background "true"
+                       :outline "false"))
+            (incf x 50)
+            (control :name (format nil "seq-2-~D-reset" i)
+                     :x x
+                     :y y
+                     :w 20
+                     :h 57
+                     :scalef "0.0"
+                     :scalet "1.0"
+                     :color "red"
+                     :type "toggle"
+                     :local_off "true")
+            (incf x 25)
+            (control :name (format nil "seq-2-~D" i)
+                     :x x
+                     :y y
+                     :w 57
+                     :h 57
+                     :color "orange"
+                     :scalef "0.0"
+                     :scalet "1.0"
+                     :type "rotaryh"
+                     :response "absolute"
+                     :inverted "false"
+                     :centered "false")
+            (incf x 70)
+            (when (zerop i)
+              (control :name "seq-2-next-dest"
+                     :x x
+                     :y y
+                     :w 20
+                     :h 57
+                     :scalef "0.0"
+                     :scalet "1.0"
+                     :color "orange"
+                     :type "push"
+                     :local_off "false")
+              (control :name "seq-2-dest"
+                       :x x
+                       :y (+ y 60)
+                       :w 20
+                       :h 177
+                       :scalef "0.0"
+                       :scalet "1.0"
+                       :color "orange"
+                       :type "labelv"
+                       :text ""
+                       :size 12
+                       :background "true"
+                       :outline "true")
+              (control :name "seq-2-label"
+                       :x x
+                       :y 936
+                       :w 20
+                       :h 60
+                       :scalef "0.0"
+                       :scalet "1.0"
+                       :color "gray"
+                       :type "labelv"
+                       :text "dHJhY2sgMw=="
+                       :size 12
+                       :background "true"
+                       :outline "false"))
+            (incf x 50)
+            (control :name (format nil "seq-1-~D-reset" i)
+                     :x x
+                     :y y
+                     :w 20
+                     :h 57
+                     :scalef "0.0"
+                     :scalet "1.0"
+                     :color "red"
+                     :type "toggle"
+                     :local_off "true")
+            (incf x 25)
+            (control :name (format nil "seq-1-~D" i)
+                     :x x
+                     :y y
+                     :w 57
+                     :h 57
+                     :color "orange"
+                     :scalef "0.0"
+                     :scalet "1.0"
+                     :type "rotaryh"
+                     :response "absolute"
+                     :inverted "false"
+                     :centered "false")
+            (incf x 70)
+            (when (zerop i)
+              (control :name "seq-1-next-dest"
+                     :x x
+                     :y y
+                     :w 20
+                     :h 57
+                     :scalef "0.0"
+                     :scalet "1.0"
+                     :color "orange"
+                     :type "push"
+                     :local_off "false")
+              (control :name "seq-1-dest"
+                       :x x
+                       :y (+ y 60)
+                       :w 20
+                       :h 177
+                       :scalef "0.0"
+                       :scalet "1.0"
+                       :color "orange"
+                       :type "labelv"
+                       :text ""
+                       :size 12
+                       :background "true"
+                       :outline "true")
+              (control :name "seq-1-label"
+                       :x x
+                       :y 936
+                       :w 20
+                       :h 60
+                       :scalef "0.0"
+                       :scalet "1.0"
+                       :color "gray"
+                       :type "labelv"
+                       :text "dHJhY2sgMg=="
+                       :size 12
+                       :background "true"
+                       :outline "false"))
+            (incf x 50)
             (control :name (format nil "seq-0-~D-rest" i)
-                     :x 30
+                     :x x
                      :y y
                      :w 20
                      :h 57
@@ -30,8 +218,9 @@
                      :color "gray"
                      :type "toggle"
                      :local_off "true")
+            (incf x 25)
             (control :name (format nil "seq-0-~D-reset" i)
-                     :x 55
+                     :x x
                      :y y
                      :w 20
                      :h 57
@@ -40,81 +229,55 @@
                      :color "red"
                      :type "toggle"
                      :local_off "true")
+            (incf x 25)
             (control :name (format nil "seq-0-~D" i)
-                     :x 80
+                     :x x
                      :y y
-                     :w 150
+                     :w 57
                      :h 57
                      :color "orange"
                      :scalef "0.0"
                      :scalet "1.0"
-                     :type "faderh"
+                     :type "rotaryh"
                      :response "absolute"
                      :inverted "false"
                      :centered "false")
-            (control :name (format nil "seq-1-~D-reset" i)
-                     :x 300
+            (incf x 70)
+            (when (zerop i)
+              (control :name "seq-0-next-dest"
+                     :x x
                      :y y
                      :w 20
                      :h 57
                      :scalef "0.0"
                      :scalet "1.0"
-                     :color "red"
-                     :type "toggle"
-                     :local_off "true")
-            (control :name (format nil "seq-1-~D" i)
-                     :x 330
-                     :y y
-                     :w 57
-                     :h 57
-                     :color "yellow"
-                     :scalef "0.0"
-                     :scalet "1.0"
-                     :type "rotaryh"
-                     :response "absolute"
-                     :inverted "false"
-                     :centered "false")
-            (control :name (format nil "seq-2-~D-reset" i)
-                     :x 440
-                     :y y
-                     :w 20
-                     :h 57
-                     :scalef "0.0"
-                     :scalet "1.0"
-                     :color "red"
-                     :type "toggle"
-                     :local_off "true")
-            (control :name (format nil "seq-2-~D" i)
-                     :x 470
-                     :y y
-                     :w 57
-                     :h 57
-                     :color "yellow"
-                     :scalef "0.0"
-                     :scalet "1.0"
-                     :type "rotaryh"
-                     :response "absolute"
-                     :inverted "false"
-                     :centered "false")
-            (control :name (format nil "seq-3-~D-reset" i)
-                     :x 580
-                     :y y
-                     :w 20
-                     :h 57
-                     :scalef "0.0"
-                     :scalet "1.0"
-                     :color "red"
-                     :type "toggle"
-                     :local_off "true")
-            (control :name (format nil "seq-3-~D" i)
-                     :x 610
-                     :y y
-                     :w 57
-                     :h 57
-                     :color "yellow"
-                     :scalef "0.0"
-                     :scalet "1.0"
-                     :type "rotaryh"
-                     :response "absolute"
-                     :inverted "false"
-                     :centered "false")))))))
+                     :color "orange"
+                     :type "push"
+                     :local_off "false")
+              (control :name "seq-0-dest"
+                       :x x
+                       :y (+ y 60)
+                       :w 20
+                       :h 177
+                       :scalef "0.0"
+                       :scalet "1.0"
+                       :color "orange"
+                       :type "labelv"
+                       :text ""
+                       :size 12
+                       :background "true"
+                       :outline "true")
+              (control :name "seq-0-label"
+                       :x x
+                       :y 936
+                       :w 20
+                       :h 60
+                       :scalef "0.0"
+                       :scalet "1.0"
+                       :color "gray"
+                       :type "labelv"
+                       :text "dHJhY2sgMQ=="
+                       :size 12
+                       :background "true"
+                       :outline "false"))
+            (incf x 50)))))))
