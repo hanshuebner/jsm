@@ -36,9 +36,11 @@ hub.webServer = antinode.start({ port: options.httpPort,
                                });
 
 hub.currentPreset = [];
-_.each(_.range(192), function(parameter) { hub.currentPreset[parameter] = 0; });
+_.each(_.range(384), function(parameter) { hub.currentPreset[parameter] = 0; });
 
 hub.on('presetChange', function (preset) {
+    console.log('length of new preset:', preset.length);
+    console.log('new preset:', (new Buffer(preset.slice(184, 200), 'binary')).toString().replace(/ *$/, ""));
     hub.currentPreset = preset;
 });
 hub.on('newListener', function (event, listener) {
