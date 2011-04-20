@@ -47,7 +47,7 @@ exports.make = function(hub)
         console.log('sending info to TouchOSC');
         var bundle = new OSC.Bundle;
         for (var i = sequencerStartNrpns[0]; i < sequencerStartNrpns[0] + 64; i++) {
-            parameterChangeToBundle(bundle, i, preset[i]);
+            parameterChangeToBundle(bundle, i, preset.parameters[i]);
         }
         this.send(bundle);
     }

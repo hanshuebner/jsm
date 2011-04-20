@@ -50,7 +50,7 @@ hub.on('newListener', function (event, listener) {
 
 hub.on('parameterChange', function (parameter, value, from) {
     console.log('hub parameter change, parameter', parameter, 'value', value, 'from', from && from.name);
-    hub.currentPreset.parameter[parameter] = value;
+    hub.currentPreset.parameters[parameter] = value;
 });
 
 console.log('reading controller modules');

@@ -34,6 +34,22 @@ function decodePackedMSB(packed)
     return retval;
 }
 
+function encodePackedMSB(unpacked)
+{
+    var retval = [];
+    for (var i = 0; i < unpacked.length; i += 7) {
+        var msbPointer = retval.length;
+        retval.push(0);
+        var msbMask = 1;
+        for (var j = i; j < Math.min(unpacked.length, i + 7); j++) {
+            retval[msbPointer] |= (unpacked[j] & 0x80) ? msbMask : 0;
+            retval.push(unpacked[j] & 0x7f);
+            msbMask <<= 1;
+        }
+    }
+    return retval;
+}
+
 // Utility function to transform arrays into strings for easy
 // comparison.
 function toHexString (array, length) {
@@ -239,16 +255,32 @@ var paramToNrpn = {
   183: 183
 }
 
+var nrpnToParam = {};
+
+for (var key in paramToNrpn) {
+    nrpnToParam[paramToNrpn[key]] = key;
+}
+
+function reorderParams(input, translateIndex)
+{
+    var output = [];
+    for (var i = 0; i < 200; i++) {
+        output[translateIndex[i]] = input[i];
+    }
+    for (var i = 200; i < 384; i++) {
+        output[translateIndex[i - 200] + 200] = input[i];
+    }
+    return output;
+}
+
 function reorderParamsByNrpn(byParam)
 {
-    var byNrpn = [];
-    for (var paramNr = 0; paramNr < 200; paramNr++) {
-        byNrpn[paramToNrpn[paramNr]] = byParam[paramNr];
-    }
-    for (var paramNr = 200; paramNr < 384; paramNr++) {
-        byNrpn[paramToNrpn[paramNr - 200] + 200] = byParam[paramNr];
-    }
-    return byNrpn;
+    return reorderParams(byParam, paramToNrpn);
+}
+
+function reorderNrpnsByParam(byNrpn)
+{
+    return reorderParams(byNrpn, nrpnToParam);
 }
 
 function readSysexDump(filename, callback)
@@ -294,7 +326,9 @@ exports.make = function(_hub) {
     function handleTetraSysex(message) {
         switch (toHexString(message, 4)) {
         case tetraSysexResponse.editBufferDataDump:
-            currentTetraPreset = decodePackedMSB(message.slice(4));
+            currentTetraPreset = { name: 'downloaded',
+                                   labels: [],
+                                   parameters: reorderParamsByNrpn(decodePackedMSB(message.slice(4))) };
             console.log('Received edit buffer information from Tetra');
             hub.emit('presetChange', currentTetraPreset);
             break;
@@ -318,5 +352,12 @@ exports.make = function(_hub) {
         if (from != tetraInput) {
             tetraOutput.nrpn14(parameter, value);
         }
+    });
+    hub.on('presetChange', function (preset) {
+        var params = reorderNrpnsByParam(preset.parameters);
+        var sysexBuffer = [0xf0, 0x01, 0x26, 0x03].concat(encodePackedMSB(params)).concat([0xf7]);
+        console.log('sending preset to tetra');
+        tetraOutput.sysex(sysexBuffer);
+        console.log('done');
     });
 }
