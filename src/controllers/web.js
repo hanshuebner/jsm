@@ -15,21 +15,21 @@ function newSocketClient(client) {
 
     function parameterChange (parameter, value, from) {
         if (from != client) {
-            client.send('set ' + nrpnToWebName(parameter) + ' ' + value);
+            client.send(JSON.stringify(['set', nrpnToWebName(parameter), value]));
         }
     }
     hub.on('parameterChange', parameterChange);
     function presetChange (preset) {
-        for (var i = 0; i < preset.length; i++) {
+        for (var i = 0; i < preset.parameters.length; i++) {
             var parameterName = nrpnToWebName(i);
             if (parameterName) {
-                client.send('set ' + parameterName + ' ' + preset[i]);
+                client.send(JSON.stringify(['set', parameterName, preset.parameters[i]]));
             }
         }
     }
     hub.on('presetChange', presetChange);
     client.on('message', function (message) {
-        var args = message.split(/ +/);
+        var args = JSON.parse(message);
         var command = args.shift();
         switch (command) {
         case 'set':
@@ -38,8 +38,7 @@ function newSocketClient(client) {
             hub.emit('parameterChange', parameter, value, client);
             break;
         case 'preset':
-            console.log('preset changed from web client');
-            hub.emit('presetChange', _.map(args[0].split(','), parseInt));
+            hub.emit('presetChange', args[0]);
             break;
         default:
             console.log("can't parse message '" + message + "' from web client");

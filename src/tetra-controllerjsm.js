@@ -35,12 +35,11 @@ hub.webServer = antinode.start({ port: options.httpPort,
                                  }
                                });
 
-hub.currentPreset = [];
-_.each(_.range(384), function(parameter) { hub.currentPreset[parameter] = 0; });
+hub.currentPreset = { name: 'unknown', parameters: [] };
+_.each(_.range(384), function(parameter) { hub.currentPreset.parameters[parameter] = 0; });
 
 hub.on('presetChange', function (preset) {
-    console.log('length of new preset:', preset.length);
-    console.log('new preset:', (new Buffer(preset.slice(184, 200), 'binary')).toString().replace(/ *$/, ""));
+    console.log('new preset:', preset.name);
     hub.currentPreset = preset;
 });
 hub.on('newListener', function (event, listener) {
@@ -51,7 +50,7 @@ hub.on('newListener', function (event, listener) {
 
 hub.on('parameterChange', function (parameter, value, from) {
     console.log('hub parameter change, parameter', parameter, 'value', value, 'from', from && from.name);
-    hub.currentPreset[parameter] = value;
+    hub.currentPreset.parameter[parameter] = value;
 });
 
 console.log('reading controller modules');
