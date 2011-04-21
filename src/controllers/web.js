@@ -34,8 +34,10 @@ function newSocketClient(client) {
         switch (command) {
         case 'set':
             var parameter = webNameToNrpn(args.shift());
-            var value = args.shift();
-            hub.emit('parameterChange', parameter, value, client);
+            if (parameter) {
+                var value = args.shift();
+                hub.emit('parameterChange', parameter, value, client);
+            }
             break;
         case 'preset':
             hub.emit('presetChange', args[0]);
