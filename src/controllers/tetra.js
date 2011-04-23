@@ -258,17 +258,21 @@ var paramToNrpn = {
 var nrpnToParam = {};
 
 for (var key in paramToNrpn) {
-    nrpnToParam[paramToNrpn[key]] = key;
+    nrpnToParam[paramToNrpn[key]] = parseInt(key);
 }
 
 function reorderParams(input, translateIndex)
 {
     var output = [];
     for (var i = 0; i < 200; i++) {
-        output[translateIndex[i]] = input[i];
+        if (translateIndex[i]) {
+            output[translateIndex[i]] = input[i];
+        }
     }
     for (var i = 200; i < 384; i++) {
-        output[translateIndex[i - 200] + 200] = input[i];
+        if (translateIndex[i - 200]) {
+            output[translateIndex[i - 200] + 200] = input[i];
+        }
     }
     return output;
 }
@@ -345,8 +349,8 @@ exports.make = function(_hub) {
     });
     tetraInput.on('programChange', handleTetraProgramChange);
 
-    console.log('requesting Tetra edit buffer');
-    tetraOutput.sysex(tetraSysexRequest.requestEditBufferDump);
+//    console.log('requesting Tetra edit buffer');
+//    tetraOutput.sysex(tetraSysexRequest.requestEditBufferDump);
 
     hub.on('parameterChange', function (parameter, value, from) {
         if (from != tetraInput) {
@@ -356,8 +360,6 @@ exports.make = function(_hub) {
     hub.on('presetChange', function (preset) {
         var params = reorderNrpnsByParam(preset.parameters);
         var sysexBuffer = [0xf0, 0x01, 0x26, 0x03].concat(encodePackedMSB(params)).concat([0xf7]);
-        console.log('sending preset to tetra');
         tetraOutput.sysex(sysexBuffer);
-        console.log('done');
     });
 }
