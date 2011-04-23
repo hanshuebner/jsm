@@ -1,3 +1,4 @@
+var _ = require('underscore');
 var MIDI = require('MIDI');
 var bcr2000web = require('bcr2000-web.js');
 var BCR2000 = require('bcr2000');
@@ -46,7 +47,7 @@ function selectBcrPreset (tetraPreset) {
         _.each(parsedBCL.presets[currentBcrPreset].controls,
                function (control) {
                    if (control.nrpn != undefined) {
-                       bcrOutput.nrpn14(control.nrpn, tetraPreset[control.nrpn]);
+                       bcrOutput.nrpn14(control.nrpn, tetraPreset.parameters[control.nrpn]);
                    }
                });
     }
