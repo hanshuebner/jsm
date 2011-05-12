@@ -19,3 +19,6 @@
 [submodule "lib/node_mdns"]
 	path = lib/node_mdns
 	url = git@github.com:agnat/node_mdns
+[submodule "lib/node-pashua"]
+	path = lib/node-pashua
+	url = git@github.com:hanshuebner/node-pashua.git
