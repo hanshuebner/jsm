@@ -47,7 +47,6 @@ function newSocketClient(client) {
         }
     });
     client.on('disconnect', function () {
-        console.log('client disconnect');
         hub.removeListener('parameterChange', parameterChange);
         hub.removeListener('presetChange', presetChange);
     });
