@@ -1,0 +1,57 @@
+Tetra editor preset management
+
+Subjects:
+
+- Sound
+
+  Set of base parameters (0-184) that defines a certain sound
+  Subject of editing
+  Can be loaded from database
+  Database contains sounds as their prime subjects
+
+- Program
+
+  Set of two sounds stored as "Program" in the Tetra
+
+- Combo
+
+  Set of four sounds store as "Combo" in the Tetra
+
+
+Notes:
+
+In Combo and Multi mode, layer B of a program is ignored
+In "Key Mode" "Stack", two voices are assigned to one program
+
+When editing a sound, a destination can be established.  The
+destination determines which sound in the synth is affected by the
+change.  Destinations can be Program A/B or Combo 1-4.  Switching the
+destination can be done at any time through the "status" box in the
+web interface.
+
+All controller operations affect the Tetra edit buffers.  Writing the
+current edit buffer to a Program or Combo is an explicit operation on
+the "Presets" page.
+
+
+UI plan:
+--------
+
+Web interface:
+
+- The currently edited sound slot must always be displayed
+-- In Program mode, layer A and B can be edited
+-- In Combo and Multi mode, each of the four voices can be edited
+-- Changing currently edited sound slot must always be possible
+-- Changing sound names requires switching to the "Presets" page
+- A "changed" indicator must always be displayed
+- Toggling between the edited and the original sound should be possible
+
+- Database contains a library of sounds
+- Sounds are stored as objects and are converted to binary/numeric form only when they're sent to the Tetra
+- Combos and programs can be assembled from the sounds library by drag and drop
+
+BCR2000 behavior:
+
+- The standard pages of the BCR2000 controller affect the currently edited sound
+- Controls on the BCR2000 user pages can be assigned to any slot (Program A/B, Combo 1-4)

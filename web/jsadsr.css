@@ -1,0 +1,18 @@
+body {
+    background-color: #ddd;
+}
+
+.adsr {
+    background-color: #fff;
+    border: 2px solid black;
+}
+
+#adsr1 {
+    width: 425px;
+    height: 100px;
+}
+
+#adsr2 {
+    width: 850px;
+    height: 200px;
+}
