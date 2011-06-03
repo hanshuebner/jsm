@@ -1,9 +1,6 @@
 [submodule "web/adsr"]
 	path = web/adsr
 	url = netzhansa.com:public_html/adsr
-[submodule "web/tetra-web"]
-	path = web/tetra-web
-	url = git@github.com:hanshuebner/tetra-web
 [submodule "web/live-web-components"]
 	path = web/live-web-components
 	url = git@github.com:hanshuebner/live-web-components
