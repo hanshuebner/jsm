@@ -1,0 +1,254 @@
+
+$rev R1 ; Firmware 1.10; BC Manager 2.2.1
+$global
+  .midimode U-3
+  .startup last
+  .footsw auto
+  .rxch off
+  .deviceid 1
+  .txinterval 2
+  .deadtime 0
+  .egroups 1
+$preset
+  .name '                            '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys off
+  .lock on
+  .init
+$encoder 1 ;OSC 1 FREQ
+  .easypar NRPN 1 0 0 120 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 2 ;OSC 1 FREQ FINE
+  .easypar NRPN 1 1 0 100 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 3 ;OSC 1 SHAPE
+  .easypar NRPN 1 2 0 103 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 4 ;GLIDE 1
+  .easypar NRPN 1 3 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 5 ;OSC 2 FREQ
+  .easypar NRPN 1 5 0 120 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 6 ;OSC 2 FREQ FINE
+  .easypar NRPN 1 6 0 100 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 7 ;OSC 2 SHAPE
+  .easypar NRPN 1 7 0 103 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 8 ;GLIDE 2
+  .easypar NRPN 1 8 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 9 ;Sub Osc 1 Lvl
+  .easypar CC 12 30 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 10 ;Sub Osc 2 Lvl
+  .easypar CC 12 31 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 11 ;Osc Mix
+  .easypar CC 12 28 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 12 ;Noise Lvl
+  .easypar CC 12 29 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 13 ;Feedback Vol
+  .easypar CC 12 52 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 14 ;Feedback Gain
+  .easypar CC 12 53 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 17 ;Env 3 Dest
+  .easypar CC 12 85 0 43 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 1
+$encoder 18 ;Env 3 Amount
+  .easypar CC 12 86 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 10 50 100 500
+  .default 12
+$encoder 19 ;Env 3 Vel Amount
+  .easypar CC 12 87 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 20 ;Env 3 Delay
+  .easypar CC 12 88 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 21 ;Env 3 Attack
+  .easypar CC 12 89 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 22 ;Env 3 Decay
+  .easypar CC 12 90 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 23 ;Env 3 Sustain
+  .easypar CC 12 77 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 24 ;Env 3 Release
+  .easypar CC 12 78 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 18
+$encoder 33 ;FILTER FREQ
+  .easypar NRPN 1 15 0 164 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 34 ;RESONANCE
+  .easypar NRPN 1 16 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 35 ;FIL DEL
+  .easypar NRPN 1 22 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 36 ;FIL ATT
+  .easypar NRPN 1 23 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 37 ;FIL DEC
+  .easypar NRPN 1 24 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 38 ;FIL SUS
+  .easypar NRPN 1 25 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 39 ;FIL REL
+  .easypar NRPN 1 26 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 40 ;FIL AUDIO MOD
+  .easypar NRPN 1 18 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 41 ;FIL KEY AMT
+  .easypar NRPN 1 17 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 42 ;FIL ENV VEL AMT
+  .easypar NRPN 1 21 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 43 ;FIL ENV VEL AMT
+  .easypar NRPN 1 21 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 46 ;OUTPUT PAN
+  .easypar NRPN 1 28 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 47 ;TIME SIG
+  .easypar NRPN 1 92 0 12 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 48 ;TEMPO
+  .easypar NRPN 1 91 30 250 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 49 ;VCA LEVEL
+  .easypar NRPN 1 27 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 50 ;VCA ENV AMOUNT
+  .easypar NRPN 1 30 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 51 ;VCA ENV VEL AMT
+  .easypar NRPN 1 31 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 52 ;VCA DEL
+  .easypar NRPN 1 32 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 53 ;VCA ATT
+  .easypar NRPN 1 33 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 54 ;VCA DEC
+  .easypar NRPN 1 34 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 55 ;VCA SUS
+  .easypar NRPN 1 35 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$encoder 56 ;VCA REL
+  .easypar NRPN 1 36 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+$store 1

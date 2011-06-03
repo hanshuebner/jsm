@@ -1,0 +1,3379 @@
+$rev R1 ; Firmware 1.10; BC Manager 2.2.1
+$global
+  .midimode U-3
+  .startup last
+  .footsw auto
+  .rxch off
+  .deviceid 1
+  .txinterval 2
+  .deadtime 0
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1 ;Osc 1 freq
+  .easypar CC 12 20 0 120 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 34
+$encoder 2 ;Osc 1 Freq Fine
+  .easypar CC 12 21 0 100 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 46
+$encoder 3 ;Osc 1 Shape
+  .easypar CC 12 22 0 103 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 4 ;Osc 1 Glide
+  .easypar CC 12 23 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 5 ;Osc 2 Freq
+  .easypar CC 12 24 0 120 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 6 ;Osc 2 Freq Fine
+  .easypar CC 12 25 0 100 absolute
+  .showvalue on
+  .mode pan
+  .resolution 96 96 96 96
+  .default 50
+$encoder 7 ;Osc 2 Shape
+  .easypar CC 12 26 0 103 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 8 ;Osc 2 Glide
+  .easypar CC 12 27 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 9 ;Sub Osc 1 Lvl
+  .easypar CC 12 30 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 10 ;Sub Osc 2 Lvl
+  .easypar CC 12 31 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 11 ;Osc Mix
+  .easypar CC 12 28 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 12 ;Noise Lvl
+  .easypar CC 12 29 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 13 ;Feedback Vol
+  .easypar CC 12 52 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 14 ;Feedback Gain
+  .easypar CC 12 53 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 17 ;Env 3 Dest
+  .easypar CC 12 85 0 43 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 1
+$encoder 18 ;Env 3 Amount
+  .easypar CC 12 86 0 127 absolute
+  .showvalue on
+  .mode pan
+  .resolution 10 50 100 500
+  .default 12
+$encoder 19 ;Env 3 Vel Amount
+  .easypar CC 12 87 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 20 ;Env 3 Delay
+  .easypar CC 12 88 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 21 ;Env 3 Attack
+  .easypar CC 12 89 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 22 ;Env 3 Decay
+  .easypar CC 12 90 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 23 ;Env 3 Sustain
+  .easypar CC 12 77 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 24 ;Env 3 Release
+  .easypar CC 12 78 0 127 absolute
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 18
+$encoder 33 ;Filter Freq
+  .easypar CC 12 102 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 121
+$encoder 34 ;Filter Res
+  .easypar CC 12 103 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 35 ;Filt Env Delay
+  .easypar CC 12 108 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 36 ;Filt Env Attack
+  .easypar CC 12 109 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 37 ;Filt Env Decay
+  .easypar CC 12 110 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 38 ;Filt Env Sustain
+  .easypar CC 12 111 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 39 ;Filt Env Release
+  .easypar CC 12 112 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 40 ;Filt Audio Mod
+  .easypar CC 12 105 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 41 ;Filt KeyB Amount
+  .easypar CC 12 104 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 42 ;Filt Env Amount
+  .easypar CC 12 106 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 64
+$encoder 43 ;Filt Env Vel Amount
+  .easypar CC 12 107 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 2
+$encoder 46 ;Pan Spread
+  .easypar CC 12 114 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 47 ;Clock Divide
+  .easypar CC 12 15 0 12 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 24 24 24 24
+  .default 1
+$encoder 48 ;Clock BPM
+  .easypar CC 12 14 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 90
+$encoder 49 ;VCA Lvl
+  .easypar CC 12 113 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 50 ;VCA Env Amount
+  .easypar CC 12 115 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 51 ;VCA Env Velocity
+  .easypar CC 12 116 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 52 ;VCA Env Delay
+  .easypar CC 12 117 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 53 ;VCA Env Attack
+  .easypar CC 12 118 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 54 ;VCA Env Decay
+  .easypar CC 12 119 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 55 ;VCA Env Sustain
+  .easypar CC 12 75 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 56 ;VCA Env Release
+  .easypar CC 12 76 0 127 absolute
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$store 1
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1 ;Osc 1 freq
+  .easypar NRPN 12 0 0 120 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 10
+$encoder 2 ;Osc 1 freq fine
+  .easypar NRPN 12 1 0 100 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 52
+$encoder 3 ;Pulse 1 Width
+  .easypar NRPN 12 2 0 103 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 13
+$encoder 4 ;Osc 1 Glide
+  .easypar NRPN 12 3 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 46
+$encoder 5 ;Osc 2 freq
+  .easypar NRPN 12 5 0 120 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 24
+$encoder 6 ;Osc 2 freq fine
+  .easypar NRPN 12 6 0 100 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 50
+$encoder 7 ;Pulse 2 Width
+  .easypar NRPN 12 7 0 103 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 7
+$encoder 8 ;Osc 2 Glide
+  .easypar NRPN 12 8 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 9 ;Sub Osc 1 Lvl
+  .easypar NRPN 12 114 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 127
+$encoder 10 ;Sub Osc 2 Lvl
+  .easypar NRPN 12 115 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 63
+$encoder 11 ;Osc Mix
+  .easypar NRPN 12 13 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 12 ;Noise lvl
+  .easypar NRPN 12 14 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 13 ;Feedback Vol
+  .easypar NRPN 12 116 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 48
+$encoder 14 ;Feedback Gain
+  .easypar NRPN 12 110 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 15 ;Osc Slop
+  .easypar NRPN 12 12 0 5 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 24 24 24 24
+  .default 0
+$encoder 16 ;Pitch Bend Range
+  .easypar NRPN 12 93 0 12 absolute/14
+  .showvalue on
+  .mode spread
+  .resolution 24 24 24 24
+  .default 12
+$encoder 17 ;Env 3 Dest
+  .easypar NRPN 12 57 0 43 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 31
+$encoder 18 ;Env 3 Amount
+  .easypar NRPN 12 58 0 254 absolute/14
+  .showvalue on
+  .mode pan
+  .resolution 96 192 384 768
+  .default 120
+$encoder 19 ;Env 3 Vel Amount
+  .easypar NRPN 12 59 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 20 ;Env 3 Delay
+  .easypar NRPN 12 60 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 21 ;Env 3 Attack
+  .easypar NRPN 12 61 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 22 ;Env 3 Decay
+  .easypar NRPN 12 62 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 23
+$encoder 23 ;Env 3 Sustain
+  .easypar NRPN 12 63 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 24 ;Env 3 Release
+  .easypar NRPN 12 64 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 23
+$encoder 33 ;Filter Freq
+  .easypar NRPN 12 15 0 164 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 34 ;Filter res
+  .easypar NRPN 12 16 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 1
+$encoder 35 ;Filt Env Delay
+  .easypar NRPN 12 22 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 36 ;Filt Env Attack
+  .easypar NRPN 12 23 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 37 ;Filt Env decay
+  .easypar NRPN 12 24 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 24
+$encoder 38 ;Filt Env Sustain
+  .easypar NRPN 12 25 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 39 ;Filt Env Release
+  .easypar NRPN 12 26 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 17
+$encoder 40 ;Filt Audio Mod
+  .easypar NRPN 12 18 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 94
+$encoder 41 ;Filt KeyB Amount
+  .easypar NRPN 12 17 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 42 ;Filt Env Amount
+  .easypar NRPN 12 20 0 254 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 192 384 768
+  .default 0
+$encoder 43 ;Filt Env Vel Amount
+  .easypar NRPN 12 21 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 44 ;KeyB Split Point
+  .easypar NRPN 12 118 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 45 ;Program Vol
+  .easypar NRPN 12 29 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 46 ;Pan Spread
+  .easypar NRPN 12 28 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 47 ;Clock Divide
+  .easypar NRPN 12 92 0 12 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 24 24 24 24
+  .default 0
+$encoder 48 ;Clock BPM
+  .easypar NRPN 12 91 30 250 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 192 384 768
+  .default 110
+$encoder 49 ;VCA Lvl
+  .easypar NRPN 12 27 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 50 ;VCA Env Amount
+  .easypar NRPN 12 30 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 108
+$encoder 51 ;VCA Env Velocity
+  .easypar NRPN 12 31 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 52 ;VCA Env Delay
+  .easypar NRPN 12 32 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 53 ;VCA Env Attack
+  .easypar NRPN 12 33 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 54 ;VCA Enc Decay
+  .easypar NRPN 12 34 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 18
+$encoder 55 ;VCA Env Sustain
+  .easypar NRPN 12 35 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 58
+$encoder 56 ;VCA Env Release
+  .easypar NRPN 12 36 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 26
+$button 3 ;Osc 1 Shape
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $00
+  .tx $BB $62 $02
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 7 ;Osc 2 Shape
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $00
+  .tx $BB $62 $07
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 33 ;Env 3 Repeat
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $00
+  .tx $BB $62 $62
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 34 ;Osc 1 keyB on/off
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $00
+  .tx $BB $62 $04
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 35 ;Osc 2 KeyB on/off
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $00
+  .tx $BB $62 $09
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 36 ;Osc Sync on/off
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $00
+  .tx $BB $62 $0A
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 37 ;Glide Mode
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 3
+  .tx $BB $63 $00
+  .tx $BB $62 $0B
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 38 ;Unison on/off
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $00
+  .tx $BB $62 $63
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 39 ;Unison Mode
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $00
+  .tx $BB $62 $5F
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 40 ;Unison Assign
+  .showvalue on
+  .default 4
+  .mode incval 1
+  .minmax 0 5
+  .tx $BB $63 $00
+  .tx $BB $62 $60
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 41 ;Filter2/4 Pole
+  .showvalue on
+  .default 1
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $00
+  .tx $BB $62 $13
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$store 2
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1 ;Osc 1 freq
+  .easypar NRPN 12 200 0 120 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 93
+$encoder 2 ;Osc 1 freq fine
+  .easypar NRPN 12 201 0 100 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 127
+$encoder 3 ;Pulse 1 Width
+  .easypar NRPN 12 202 0 103 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 54
+$encoder 4 ;Osc 1 Glide
+  .easypar NRPN 12 203 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 61
+$encoder 5 ;Osc 2 freq
+  .easypar NRPN 12 205 0 120 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 131
+$encoder 6 ;Osc 2 freq fine
+  .easypar NRPN 12 206 0 100 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 46
+$encoder 7 ;Pulse 2 Width
+  .easypar NRPN 12 207 0 103 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 8 ;Osc 2 Glide
+  .easypar NRPN 12 208 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 21
+$encoder 9 ;Sub Osc 1 Lvl
+  .easypar NRPN 12 314 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 10 ;Sub Osc 2 Lvl
+  .easypar NRPN 12 315 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 11 ;Osc Mix
+  .easypar NRPN 12 211 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 12 ;Noise lvl
+  .easypar NRPN 12 214 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 3
+$encoder 13 ;Feedback Vol
+  .easypar NRPN 12 316 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 9
+$encoder 14 ;Feedback Gain
+  .easypar NRPN 12 310 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 4
+$encoder 15 ;Osc Slop
+  .easypar NRPN 12 212 0 5 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 24 24 24 24
+  .default 0
+$encoder 16 ;Pitch Bend Range
+  .easypar NRPN 12 293 0 12 absolute/14
+  .showvalue on
+  .mode spread
+  .resolution 24 24 24 24
+  .default 0
+$encoder 17 ;Env 3 Dest
+  .easypar NRPN 12 257 0 43 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 26
+$encoder 18 ;Env 3 Amount
+  .easypar NRPN 12 258 0 254 absolute/14
+  .showvalue on
+  .mode pan
+  .resolution 96 192 384 768
+  .default 91
+$encoder 19 ;Env 3 Vel Amount
+  .easypar NRPN 12 259 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 20 ;Env 3 Delay
+  .easypar NRPN 12 260 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 21 ;Env 3 Attack
+  .easypar NRPN 12 261 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 22 ;Env 3 Decay
+  .easypar NRPN 12 262 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 4
+$encoder 23 ;Env 3 Sustain
+  .easypar NRPN 12 263 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 24 ;Env 3 Release
+  .easypar NRPN 12 264 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 33 ;Filter Freq
+  .easypar NRPN 12 215 0 164 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 7
+$encoder 34 ;Filter res
+  .easypar NRPN 12 216 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 11
+$encoder 35 ;Filt Env Delay
+  .easypar NRPN 12 222 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 9
+$encoder 36 ;Filt Env Attack
+  .easypar NRPN 12 223 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 6
+$encoder 37 ;Filt Env decay
+  .easypar NRPN 12 224 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 38 ;Filt Env Sustain
+  .easypar NRPN 12 225 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 3
+$encoder 39 ;Filt Env Release
+  .easypar NRPN 12 226 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 13
+$encoder 40 ;Filt Audio Mod
+  .easypar NRPN 12 218 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 121
+$encoder 41 ;Filt KeyB Amount
+  .easypar NRPN 12 217 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 17
+$encoder 42 ;Filt Env Amount
+  .easypar NRPN 12 220 0 254 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 192 384 768
+  .default 0
+$encoder 43 ;Filt Env Vel Amount
+  .easypar NRPN 12 221 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 43
+$encoder 45 ;Program Vol
+  .easypar NRPN 12 229 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 20
+$encoder 46 ;Pan Spread
+  .easypar NRPN 12 228 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 29
+$encoder 47 ;Clock Divide
+  .easypar NRPN 12 292 0 12 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 24 24 24 24
+  .default 40
+$encoder 48 ;Clock BPM
+;Only Working from tetra to bcr2000 since new firmware
+  .easypar NRPN 12 291 30 250 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 192 384 768
+  .default 41
+$encoder 49 ;VCA Lvl
+  .easypar NRPN 12 227 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 56
+$encoder 50 ;VCA Env Amount
+  .easypar NRPN 12 230 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 127
+$encoder 51 ;VCA Env Velocity
+  .easypar NRPN 12 231 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 52 ;VCA Env Delay
+  .easypar NRPN 12 232 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 53 ;VCA Env Attack
+  .easypar NRPN 12 233 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 254
+$encoder 54 ;VCA Enc Decay
+  .easypar NRPN 12 234 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 55 ;VCA Env Sustain
+  .easypar NRPN 12 235 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$encoder 56 ;VCA Env Release
+  .easypar NRPN 12 236 0 127 absolute/14
+  .showvalue on
+  .mode 1dot/off
+  .resolution 96 96 96 96
+  .default 0
+$button 3 ;Osc 1 Shape
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $01
+  .tx $BB $62 $4A
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 7 ;Osc 2 Shape
+  .showvalue on
+  .default 0
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $01
+  .tx $BB $62 $4F
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 33 ;Env 3 Repeat
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $02
+  .tx $BB $62 $2A
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 34 ;Osc 1 keyB on/off
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $01
+  .tx $BB $62 $4C
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 35 ;Osc 2 KeyB on/off
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $01
+  .tx $BB $62 $51
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 36 ;Osc Sync on/off
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $01
+  .tx $BB $62 $52
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 37 ;Glide Mode
+  .showvalue on
+  .default 3
+  .mode incval 1
+  .minmax 0 3
+  .tx $BB $63 $01
+  .tx $BB $62 $53
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 38 ;Unison on/off
+  .showvalue on
+  .default 1
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $02
+  .tx $BB $62 $2B
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 39 ;Unison Mode
+  .showvalue on
+  .default 0
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $02
+  .tx $BB $62 $27
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 40 ;Unison Assign
+  .showvalue on
+  .default 0
+  .mode incval 1
+  .minmax 0 5
+  .tx $BB $63 $02
+  .tx $BB $62 $28
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 41 ;Filter2/4 Pole
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $01
+  .tx $BB $62 $5B
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$store 3
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1 ;LFO 1 Freq
+  .easypar NRPN 12 37 0 166 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 2 ;LFO 1 Amount
+  .easypar NRPN 12 39 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 3 ;LFO 2 Freq
+  .easypar NRPN 12 42 0 166 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 4 ;LFO 2 Amount
+  .easypar NRPN 12 44 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 5 ;LFO 3 Freq
+  .easypar NRPN 12 47 0 166 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 6 ;LFO 3 Amount
+  .easypar NRPN 12 49 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 7 ;LFO 4 Freq
+  .easypar NRPN 12 52 0 166 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 8 ;LFO 4 Amount
+  .easypar NRPN 12 54 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 9 ;LFO 1 Mod Dest
+  .easypar NRPN 12 40 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 10 ;LFO 1 Shape
+  .easypar NRPN 12 38 0 4 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 11 ;LFO 2 Mod Dest
+  .easypar NRPN 12 45 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 12 ;LFO 2 Shape
+  .easypar NRPN 12 43 0 4 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 3
+$encoder 13 ;LFO 3 Mod Dest
+  .easypar NRPN 12 50 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 9
+$encoder 14 ;LFO 3 Shape
+  .easypar NRPN 12 48 0 4 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 4
+$encoder 15 ;LFO 4 Mod Dest
+  .easypar NRPN 12 55 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 16 ;LFO 4 Shape
+  .easypar NRPN 12 53 0 4 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 17 ;Assign Para 1
+  .easypar NRPN 12 105 0 183 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 26
+$encoder 18 ;Assign Para 2
+  .easypar NRPN 12 106 0 183 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 91
+$encoder 19 ;Assign Para 3
+  .easypar NRPN 12 107 0 183 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 20 ;Assign Para 4
+  .easypar NRPN 12 108 0 183 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 25 ;Clock BPM
+  .easypar NRPN 12 91 30 250 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 108
+$encoder 33 ;Mod 1 Source
+  .easypar NRPN 12 65 0 20 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 34 ;Mod 2 Source
+  .easypar NRPN 12 68 0 20 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 35 ;Mod 3 Source
+  .easypar NRPN 12 71 0 20 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 36 ;Mod 4 Source
+  .easypar NRPN 12 74 0 20 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 38 ;Pitch Bend Range
+  .easypar NRPN 12 93 0 12 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 39 ;Mod Wheel Dest
+  .easypar NRPN 12 82 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 40 ;Mod Wheel Amount
+  .easypar NRPN 12 81 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 0
+$encoder 41 ;Mod 1 Dest
+  .easypar NRPN 12 67 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 42 ;Mod 2 Dest
+  .easypar NRPN 12 70 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 43 ;Mod 3 Dest
+  .easypar NRPN 12 73 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 2
+$encoder 44 ;Mod 4 Dest
+  .easypar NRPN 12 76 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 45 ;Foot Cntrl Dest
+  .easypar NRPN 12 90 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 46 ;Pressure Dest
+  .easypar NRPN 12 84 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 47 ;Breath Dest
+  .easypar NRPN 12 86 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 48 ;Velocity Dest
+  .easypar NRPN 12 88 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 49 ;Mod 1 Amount
+  .easypar NRPN 12 66 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 0
+$encoder 50 ;Mod 2 Amount
+  .easypar NRPN 12 69 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 0
+$encoder 51 ;Mod 3 Amount
+  .easypar NRPN 12 72 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 0
+$encoder 52 ;Mod 4 Amount
+  .easypar NRPN 12 75 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 8
+$encoder 53 ;Foot Cntrl Amount
+  .easypar NRPN 12 89 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 0
+$encoder 54 ;Pressure Amount
+  .easypar NRPN 12 83 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 0
+$encoder 55 ;Breath Amount
+  .easypar NRPN 12 85 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 0
+$encoder 56 ;Velocity Amount
+  .easypar NRPN 12 87 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 0
+$button 1 ;LFO 1 Shape
+  .showvalue on
+  .default 4
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $00
+  .tx $BB $62 $26
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 2 ;LFO 1 KeySync on/off
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $00
+  .tx $BB $62 $29
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 3 ;LFO 2 Shape
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $00
+  .tx $BB $62 $2B
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 4 ;LFO 2 KeySync on/off
+  .showvalue on
+  .default 1
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $00
+  .tx $BB $62 $2E
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 5 ;LFO 3 Shape
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $00
+  .tx $BB $62 $30
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 6 ;LFO 3 KeySync on/off
+  .showvalue on
+  .default 1
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $00
+  .tx $BB $62 $33
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 7 ;LfO 4 Shape
+  .showvalue on
+  .default 0
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $00
+  .tx $BB $62 $35
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 8 ;LFO 4 KeySync on/off
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $00
+  .tx $BB $62 $38
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$store 4
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1 ;LFO 1 Freq
+  .easypar NRPN 12 237 0 166 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 71
+$encoder 2 ;LFO 1 Amount
+  .easypar NRPN 12 239 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 29
+$encoder 3 ;LFO 2 Freq
+  .easypar NRPN 12 242 0 166 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 54
+$encoder 4 ;LFO 2 Amount
+  .easypar NRPN 12 244 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 37
+$encoder 5 ;LFO 3 Freq
+  .easypar NRPN 12 247 0 166 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 108
+$encoder 6 ;LFO 3 Amount
+  .easypar NRPN 12 249 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 79
+$encoder 7 ;LFO 4 Freq
+  .easypar NRPN 12 252 0 166 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 8 ;LFO 4 Amount
+  .easypar NRPN 12 254 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 21
+$encoder 9 ;LFO 1 Mod Dest
+  .easypar NRPN 12 240 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 10 ;LFO 1 Shape
+  .easypar NRPN 12 238 0 4 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 11 ;LFO 2 Mod Dest
+  .easypar NRPN 12 245 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 12 ;LFO 2 Shape
+  .easypar NRPN 12 243 0 4 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 3
+$encoder 13 ;LFO 3 Mod Dest
+  .easypar NRPN 12 250 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 9
+$encoder 14 ;LFO 3 Shape
+  .easypar NRPN 12 248 0 4 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 4
+$encoder 15 ;LFO 4 Mod Dest
+  .easypar NRPN 12 255 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 16 ;LFO 4 Shape
+  .easypar NRPN 12 253 0 4 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 17 ;Assign Para 1
+  .easypar NRPN 12 105 0 183 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 26
+$encoder 18 ;Assign Para 2
+  .easypar NRPN 12 106 0 183 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 91
+$encoder 19 ;Assign Para 3
+  .easypar NRPN 12 107 0 183 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 20 ;Assign Para 4
+  .easypar NRPN 12 108 0 183 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 96 96 96
+  .default 0
+$encoder 33 ;Mod 1 Source
+  .easypar NRPN 12 265 0 20 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 12
+$encoder 34 ;Mod 2 Source
+  .easypar NRPN 12 268 0 20 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 11
+$encoder 35 ;Mod 3 Source
+  .easypar NRPN 12 271 0 20 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 9
+$encoder 36 ;Mod 4 Source
+  .easypar NRPN 12 274 0 20 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 6
+$encoder 38 ;Pitch Bend Range
+  .easypar NRPN 12 293 0 12 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 3
+$encoder 39 ;Mod Wheel Dest
+  .easypar NRPN 12 282 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 13
+$encoder 40 ;Mod Wheel Amount
+  .easypar NRPN 12 281 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 121
+$encoder 41 ;Mod 1 Dest
+  .easypar NRPN 12 267 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 17
+$encoder 42 ;Mod 2 Dest
+  .easypar NRPN 12 270 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 43 ;Mod 3 Dest
+  .easypar NRPN 12 273 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 43
+$encoder 44 ;Mod 4 Dest
+  .easypar NRPN 12 276 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 11
+$encoder 45 ;Foot Cntrl Dest
+  .easypar NRPN 12 290 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 20
+$encoder 46 ;Pressure Dest
+  .easypar NRPN 12 284 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 29
+$encoder 47 ;Breath Dest
+  .easypar NRPN 12 286 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 40
+$encoder 48 ;Velocity Dest
+  .easypar NRPN 12 288 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 41
+$encoder 49 ;Mod 1 Amount
+  .easypar NRPN 12 266 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 56
+$encoder 50 ;Mod 2 Amount
+  .easypar NRPN 12 269 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 127
+$encoder 51 ;Mod 3 Amount
+  .easypar NRPN 12 272 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 0
+$encoder 52 ;Mod 4 Amount
+  .easypar NRPN 12 275 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 0
+$encoder 53 ;Foot Cntrl Amount
+  .easypar NRPN 12 289 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 254
+$encoder 54 ;Pressure Amount
+  .easypar NRPN 12 283 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 0
+$encoder 55 ;Breath Amount
+  .easypar NRPN 12 285 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 0
+$encoder 56 ;Velocity Amount
+  .easypar NRPN 12 287 0 254 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 0
+$button 1 ;LFO 1 Shape
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $01
+  .tx $BB $62 $6E
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 2 ;LFO 1 KeySync on/off
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $01
+  .tx $BB $62 $71
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 3 ;LFO 2 Shape
+  .showvalue on
+  .default 0
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $01
+  .tx $BB $62 $73
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 4 ;LFO 2 KeySync on/off
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $01
+  .tx $BB $62 $76
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 5 ;LFO 3 Shape
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $01
+  .tx $BB $62 $78
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 6 ;LFO 3 KeySync on/off
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $01
+  .tx $BB $62 $7B
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 7 ;LfO 4 Shape
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $01
+  .tx $BB $62 $7D
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 8 ;LFO 4 KeySync on/off
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $02
+  .tx $BB $62 $00
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$store 5
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1 ;Seq 1/3 Step 1
+  .easypar NRPN 12 120 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 92
+$encoder 2 ;Seq 1/3 Step 2
+  .easypar NRPN 12 121 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 62
+$encoder 3 ;Seq 1/3 Step 3
+  .easypar NRPN 12 122 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 54
+$encoder 4 ;Seq 1/3 Step 4
+  .easypar NRPN 12 123 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 61
+$encoder 5 ;Seq 1/3 Step 5
+  .easypar NRPN 12 124 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 131
+$encoder 6 ;Seq 1/3 Step 6
+  .easypar NRPN 12 125 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 46
+$encoder 7 ;Seq 1/3 Step 7
+  .easypar NRPN 12 126 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 8 ;Seq 1/3 Step 8
+  .easypar NRPN 12 127 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 21
+$encoder 9 ;Seq 1/3 Dest
+  .easypar NRPN 12 77 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 10 ;Seq 2/4 Dest
+  .easypar NRPN 12 78 0 48 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 13 ;Clock BPM
+  .easypar NRPN 12 91 30 250 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 9
+$encoder 14 ;Clock Divide
+  .easypar NRPN 12 92 0 12 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 4
+$encoder 15 ;Push It Velocity
+  .easypar NRPN 12 112 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 0
+$encoder 16 ;Push It note
+  .easypar NRPN 12 111 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 33 ;Seq 1/3 Step 9
+  .easypar NRPN 12 128 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 7
+$encoder 34 ;Seq 1/3 Step 10
+  .easypar NRPN 12 129 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 11
+$encoder 35 ;Seq 1/3 Step 11
+  .easypar NRPN 12 130 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 9
+$encoder 36 ;Seq 1/3 Step 12
+  .easypar NRPN 12 131 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 6
+$encoder 37 ;Seq 1/3 Step 13
+  .easypar NRPN 12 132 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 73
+$encoder 38 ;Seq 1/3 Step 14
+  .easypar NRPN 12 133 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 3
+$encoder 39 ;Seq 1/3 Step 15
+  .easypar NRPN 12 134 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 13
+$encoder 40 ;Seq 1/3 Step 16
+  .easypar NRPN 12 135 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 121
+$encoder 41 ;Seq 2/4 Step 1
+  .easypar NRPN 12 136 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 17
+$encoder 42 ;Seq 2/4 Step 2
+  .easypar NRPN 12 137 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 43 ;Seq 2/4 Step 3
+  .easypar NRPN 12 138 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 43
+$encoder 44 ;Seq 2/4 Step 4
+  .easypar NRPN 12 139 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 11
+$encoder 45 ;Seq 2/4 Step 5
+  .easypar NRPN 12 140 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 20
+$encoder 46 ;Seq 2/4 Step 6
+  .easypar NRPN 12 141 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 29
+$encoder 47 ;Seq 2/4 Step 7
+  .easypar NRPN 12 142 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 40
+$encoder 48 ;Seq 2/4 Step 8
+  .easypar NRPN 12 143 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 41
+$encoder 49 ;Seq 2/4 Step 9
+  .easypar NRPN 12 144 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 56
+$encoder 50 ;Seq 2/4 Step 10
+  .easypar NRPN 12 145 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 127
+$encoder 51 ;Seq 2/4 Step 11
+  .easypar NRPN 12 146 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 52 ;Seq 2/4 Step 12
+  .easypar NRPN 12 147 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 53 ;Seq 2/4 Step 13
+  .easypar NRPN 12 148 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 254
+$encoder 54 ;Seq 2/4 Step 14
+  .easypar NRPN 12 149 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 55 ;Seq 2/4 Step 15
+  .easypar NRPN 12 150 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 56 ;Seq 2/4 Step 16
+  .easypar NRPN 12 151 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$button 16 ;Push It mode
+  .showvalue on
+  .default 1
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $00
+  .tx $BB $62 $71
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 33 ;Seq 1/3 Dest up
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 47
+  .tx $BB $63 $00
+  .tx $BB $62 $4D
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 34 ;Seq 2/4 Dest up
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 48
+  .tx $BB $63 $00
+  .tx $BB $62 $4E
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 39 ;Arp on/off
+  .showvalue on
+  .default 1
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $00
+  .tx $BB $62 $64
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 40 ;Seq on/off
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $00
+  .tx $BB $62 $65
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 41 ;Seq 1/3 Dest down
+  .showvalue on
+  .default 1
+  .mode incval -1
+  .minmax 0 47
+  .tx $BB $63 $00
+  .tx $BB $62 $4D
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 42 ;Seq 2/4 Dest up
+  .showvalue on
+  .default 1
+  .mode incval -1
+  .minmax 0 48
+  .tx $BB $63 $00
+  .tx $BB $62 $4E
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 47 ;Arp Mode
+  .showvalue on
+  .default 0
+  .mode incval 1
+  .minmax 0 14
+  .tx $BB $63 $00
+  .tx $BB $62 $61
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 48 ;Seq Trigger
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $00
+  .tx $BB $62 $5E
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$store 6
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1 ;Seq 1/3 Step 1
+  .easypar NRPN 12 152 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 2 ;Seq 1/3 Step 2
+  .easypar NRPN 12 153 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 3 ;Seq 1/3 Step 3
+  .easypar NRPN 12 154 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 4 ;Seq 1/3 Step 4
+  .easypar NRPN 12 155 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 5 ;Seq 1/3 Step 5
+  .easypar NRPN 12 156 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 6 ;Seq 1/3 Step 6
+  .easypar NRPN 12 157 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 7 ;Seq 1/3 Step 7
+  .easypar NRPN 12 158 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 8 ;Seq 1/3 Step 8
+  .easypar NRPN 12 159 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 9 ;Seq 1/3 Dest
+  .easypar NRPN 12 79 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 10 ;Seq 2/4 Dest
+  .easypar NRPN 12 80 0 48 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 33 ;Seq 1/3 Step 9
+  .easypar NRPN 12 160 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 34 ;Seq 1/3 Step 10
+  .easypar NRPN 12 161 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 35 ;Seq 1/3 Step 11
+  .easypar NRPN 12 162 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 36 ;Seq 1/3 Step 12
+  .easypar NRPN 12 163 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 37 ;Seq 1/3 Step 13
+  .easypar NRPN 12 164 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 38 ;Seq 1/3 Step 14
+  .easypar NRPN 12 165 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 39 ;Seq 1/3 Step 15
+  .easypar NRPN 12 166 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 40 ;Seq 1/3 Step 16
+  .easypar NRPN 12 167 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 41 ;Seq 2/4 Step 1
+  .easypar NRPN 12 168 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 42 ;Seq 2/4 Step 2
+  .easypar NRPN 12 169 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 43 ;Seq 2/4 Step 3
+  .easypar NRPN 12 170 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 2
+$encoder 44 ;Seq 2/4 Step 4
+  .easypar NRPN 12 171 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 45 ;Seq 2/4 Step 5
+  .easypar NRPN 12 172 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 46 ;Seq 2/4 Step 6
+  .easypar NRPN 12 173 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 47 ;Seq 2/4 Step 7
+  .easypar NRPN 12 174 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 48 ;Seq 2/4 Step 8
+  .easypar NRPN 12 175 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 49 ;Seq 2/4 Step 9
+  .easypar NRPN 12 176 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 50 ;Seq 2/4 Step 10
+  .easypar NRPN 12 177 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 51 ;Seq 2/4 Step 11
+  .easypar NRPN 12 178 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 52 ;Seq 2/4 Step 12
+  .easypar NRPN 12 179 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 53 ;Seq 2/4 Step 13
+  .easypar NRPN 12 180 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 54 ;Seq 2/4 Step 14
+  .easypar NRPN 12 181 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 55 ;Seq 2/4 Step 15
+  .easypar NRPN 12 182 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 56 ;Seq 2/4 Step 16
+  .easypar NRPN 12 183 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$button 33 ;Seq 1/3 Dest up
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 47
+  .tx $BB $99 $00
+  .tx $BB $62 $4F
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 34 ;Seq 2/4 Dest up
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 48
+  .tx $BB $99 $00
+  .tx $BB $62 $50
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 39 ;Arp on/off
+  .showvalue on
+  .default 1
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $00
+  .tx $BB $62 $64
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 40 ;Seq on/off
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $00
+  .tx $BB $62 $65
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 41 ;Seq 1/3 Dest down
+  .showvalue on
+  .default 1
+  .mode incval -1
+  .minmax 0 47
+  .tx $BB $99 $00
+  .tx $BB $62 $4F
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 42 ;Seq 2/4 Dest up
+  .showvalue on
+  .default 1
+  .mode incval -1
+  .minmax 0 48
+  .tx $BB $99 $00
+  .tx $BB $62 $50
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 47 ;Arp Mode
+  .showvalue on
+  .default 0
+  .mode incval 1
+  .minmax 0 14
+  .tx $BB $63 $00
+  .tx $BB $62 $61
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 48 ;Seq Trigger
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $00
+  .tx $BB $62 $5E
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$store 7
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1 ;Seq 1/3 Step 1
+  .easypar NRPN 12 320 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 25
+$encoder 2 ;Seq 1/3 Step 2
+  .easypar NRPN 12 321 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 37
+$encoder 3 ;Seq 1/3 Step 3
+  .easypar NRPN 12 322 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 116
+$encoder 4 ;Seq 1/3 Step 4
+  .easypar NRPN 12 323 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 88
+$encoder 5 ;Seq 1/3 Step 5
+  .easypar NRPN 12 324 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 69
+$encoder 6 ;Seq 1/3 Step 6
+  .easypar NRPN 12 325 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 60
+$encoder 7 ;Seq 1/3 Step 7
+  .easypar NRPN 12 326 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 65
+$encoder 8 ;Seq 1/3 Step 8
+  .easypar NRPN 12 327 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 88
+$encoder 9 ;Seq 1/3 Dest
+  .easypar NRPN 12 277 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 9
+$encoder 10 ;Seq 2/4 Dest
+  .easypar NRPN 12 278 0 48 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 13 ;Clock BPM
+  .easypar NRPN 12 291 30 250 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 96 192 384 768
+  .default 108
+$encoder 14 ;Clock Divide
+  .easypar NRPN 12 292 0 12 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 9
+$encoder 15 ;Push It Velocity
+  .easypar NRPN 12 312 0 127 absolute/14
+  .showvalue on
+  .mode bar
+  .resolution 96 96 96 96
+  .default 4
+$encoder 16 ;Push It note
+  .easypar NRPN 12 311 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 56
+$encoder 33 ;Seq 1/3 Step 9
+  .easypar NRPN 12 328 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 23
+$encoder 34 ;Seq 1/3 Step 10
+  .easypar NRPN 12 329 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 35 ;Seq 1/3 Step 11
+  .easypar NRPN 12 330 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 64
+$encoder 36 ;Seq 1/3 Step 12
+  .easypar NRPN 12 331 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 120
+$encoder 37 ;Seq 1/3 Step 13
+  .easypar NRPN 12 332 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 73
+$encoder 38 ;Seq 1/3 Step 14
+  .easypar NRPN 12 333 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 63
+$encoder 39 ;Seq 1/3 Step 15
+  .easypar NRPN 12 334 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 38
+$encoder 40 ;Seq 1/3 Step 16
+  .easypar NRPN 12 335 0 127 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 41 ;Seq 2/4 Step 1
+  .easypar NRPN 12 336 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 42 ;Seq 2/4 Step 2
+  .easypar NRPN 12 337 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 43 ;Seq 2/4 Step 3
+  .easypar NRPN 12 338 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 67
+$encoder 44 ;Seq 2/4 Step 4
+  .easypar NRPN 12 339 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 82
+$encoder 45 ;Seq 2/4 Step 5
+  .easypar NRPN 12 340 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 38
+$encoder 46 ;Seq 2/4 Step 6
+  .easypar NRPN 12 341 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 31
+$encoder 47 ;Seq 2/4 Step 7
+  .easypar NRPN 12 342 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 84
+$encoder 48 ;Seq 2/4 Step 8
+  .easypar NRPN 12 343 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 33
+$encoder 49 ;Seq 2/4 Step 9
+  .easypar NRPN 12 344 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 50 ;Seq 2/4 Step 10
+  .easypar NRPN 12 345 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 51 ;Seq 2/4 Step 11
+  .easypar NRPN 12 346 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 17
+$encoder 52 ;Seq 2/4 Step 12
+  .easypar NRPN 12 347 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 55
+$encoder 53 ;Seq 2/4 Step 13
+  .easypar NRPN 12 348 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 70
+$encoder 54 ;Seq 2/4 Step 14
+  .easypar NRPN 12 349 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 69
+$encoder 55 ;Seq 2/4 Step 15
+  .easypar NRPN 12 350 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 62
+$encoder 56 ;Seq 2/4 Step 16
+  .easypar NRPN 12 351 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 39
+$button 16 ;Push It mode
+  .showvalue on
+  .default 1
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $02
+  .tx $BB $62 $39
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 33 ;Seq 1/3 Dest up
+  .showvalue on
+  .default 0
+  .mode incval 1
+  .minmax 0 47
+  .tx $BB $63 $02
+  .tx $BB $62 $15
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 34 ;Seq 2/4 Dest up
+  .showvalue on
+  .default 0
+  .mode incval 1
+  .minmax 0 48
+  .tx $BB $63 $02
+  .tx $BB $62 $16
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 39 ;Arp on/off
+  .showvalue on
+  .default 1
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $02
+  .tx $BB $62 $2C
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 40 ;Seq on/off
+  .showvalue on
+  .default 0
+  .mode toggle
+  .minmax 0 1
+  .tx $BB $63 $02
+  .tx $BB $62 $2D
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 41 ;Seq 1/3 Dest down
+  .showvalue on
+  .default 0
+  .mode incval -1
+  .minmax 0 47
+  .tx $BB $63 $02
+  .tx $BB $62 $15
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 42 ;Seq 2/4 Dest down
+  .showvalue on
+  .default 0
+  .mode incval -1
+  .minmax 0 48
+  .tx $BB $63 $02
+  .tx $BB $62 $16
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 47 ;Arp Mode
+  .showvalue on
+  .default 2
+  .mode incval 1
+  .minmax 0 14
+  .tx $BB $63 $02
+  .tx $BB $62 $29
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 48 ;Seq Trigger
+  .showvalue on
+  .default 1
+  .mode incval 1
+  .minmax 0 4
+  .tx $BB $63 $02
+  .tx $BB $62 $26
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$store 8
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1 ;Seq 1/3 Step 1
+  .easypar NRPN 12 352 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 1
+$encoder 2 ;Seq 1/3 Step 2
+  .easypar NRPN 12 353 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 3 ;Seq 1/3 Step 3
+  .easypar NRPN 12 354 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 4 ;Seq 1/3 Step 4
+  .easypar NRPN 12 355 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 5 ;Seq 1/3 Step 5
+  .easypar NRPN 12 356 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 6 ;Seq 1/3 Step 6
+  .easypar NRPN 12 357 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 7 ;Seq 1/3 Step 7
+  .easypar NRPN 12 358 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 8 ;Seq 1/3 Step 8
+  .easypar NRPN 12 359 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 9 ;Seq 1/3 Dest
+  .easypar NRPN 12 279 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 9
+$encoder 10 ;Seq 2/4 Dest
+  .easypar NRPN 12 280 0 48 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 33 ;Seq 1/3 Step 9
+  .easypar NRPN 12 360 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 34 ;Seq 1/3 Step 10
+  .easypar NRPN 12 361 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 35 ;Seq 1/3 Step 11
+  .easypar NRPN 12 362 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 36 ;Seq 1/3 Step 12
+  .easypar NRPN 12 363 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 37 ;Seq 1/3 Step 13
+  .easypar NRPN 12 364 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 38 ;Seq 1/3 Step 14
+  .easypar NRPN 12 365 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 39 ;Seq 1/3 Step 15
+  .easypar NRPN 12 366 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 40 ;Seq 1/3 Step 16
+  .easypar NRPN 12 367 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 41 ;Seq 2/4 Step 1
+  .easypar NRPN 12 368 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 42 ;Seq 2/4 Step 2
+  .easypar NRPN 12 369 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 43 ;Seq 2/4 Step 3
+  .easypar NRPN 12 370 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 2
+$encoder 44 ;Seq 2/4 Step 4
+  .easypar NRPN 12 371 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 45 ;Seq 2/4 Step 5
+  .easypar NRPN 12 372 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 46 ;Seq 2/4 Step 6
+  .easypar NRPN 12 373 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 47 ;Seq 2/4 Step 7
+  .easypar NRPN 12 374 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 48 ;Seq 2/4 Step 8
+  .easypar NRPN 12 375 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 49 ;Seq 2/4 Step 9
+  .easypar NRPN 12 376 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 50 ;Seq 2/4 Step 10
+  .easypar NRPN 12 377 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 51 ;Seq 2/4 Step 11
+  .easypar NRPN 12 378 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 52 ;Seq 2/4 Step 12
+  .easypar NRPN 12 379 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 8
+$encoder 53 ;Seq 2/4 Step 13
+  .easypar NRPN 12 380 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 54 ;Seq 2/4 Step 14
+  .easypar NRPN 12 381 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 55 ;Seq 2/4 Step 15
+  .easypar NRPN 12 382 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 56 ;Seq 2/4 Step 16
+  .easypar NRPN 12 383 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$button 33 ;Seq 1/3 Dest up
+  .showvalue on
+  .default 0
+  .mode incval 1
+  .minmax 0 47
+  .tx $BB $63 $02
+  .tx $BB $62 $17
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 34 ;Seq 2/4 Dest up
+  .showvalue on
+  .default 0
+  .mode incval 1
+  .minmax 0 48
+  .tx $BB $63 $02
+  .tx $BB $62 $18
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 41 ;Seq 1/3 Dest down
+  .showvalue on
+  .default 0
+  .mode incval -1
+  .minmax 0 47
+  .tx $BB $63 $02
+  .tx $BB $62 $17
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 42 ;Seq 2/4 Dest down
+  .showvalue on
+  .default 0
+  .mode incval -1
+  .minmax 0 48
+  .tx $BB $63 $02
+  .tx $BB $62 $18
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$store 9
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 10
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 11
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 12
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 13
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 14
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 15
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 16
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 17
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 18
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 19
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 20
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 21
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 22
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 23
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 24
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 25
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 26
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 27
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 28
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 29
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 30
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 31
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$store 32
+$preset
+  .name '                        '
+  .snapshot off
+  .request off
+  .egroups 4
+  .fkeys on
+  .lock off
+  .init
+$encoder 1 ;Seq 1/3 Step 1
+  .easypar NRPN 12 352 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 1
+$encoder 2 ;Seq 1/3 Step 2
+  .easypar NRPN 12 353 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 3 ;Seq 1/3 Step 3
+  .easypar NRPN 12 354 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 4 ;Seq 1/3 Step 4
+  .easypar NRPN 12 355 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 5 ;Seq 1/3 Step 5
+  .easypar NRPN 12 356 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 6 ;Seq 1/3 Step 6
+  .easypar NRPN 12 357 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 7 ;Seq 1/3 Step 7
+  .easypar NRPN 12 358 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 8 ;Seq 1/3 Step 8
+  .easypar NRPN 12 359 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 9 ;Seq 1/3 Dest
+  .easypar NRPN 12 279 0 47 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 9
+$encoder 10 ;Seq 2/4 Dest
+  .easypar NRPN 12 280 0 48 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 33 ;Seq 1/3 Step 9
+  .easypar NRPN 12 360 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 34 ;Seq 1/3 Step 10
+  .easypar NRPN 12 361 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 35 ;Seq 1/3 Step 11
+  .easypar NRPN 12 362 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 36 ;Seq 1/3 Step 12
+  .easypar NRPN 12 363 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 37 ;Seq 1/3 Step 13
+  .easypar NRPN 12 364 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 38 ;Seq 1/3 Step 14
+  .easypar NRPN 12 365 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 39 ;Seq 1/3 Step 15
+  .easypar NRPN 12 366 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 40 ;Seq 1/3 Step 16
+  .easypar NRPN 12 367 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 41 ;Seq 2/4 Step 1
+  .easypar NRPN 12 368 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 42 ;Seq 2/4 Step 2
+  .easypar NRPN 12 369 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 43 ;Seq 2/4 Step 3
+  .easypar NRPN 12 370 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 2
+$encoder 44 ;Seq 2/4 Step 4
+  .easypar NRPN 12 371 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 45 ;Seq 2/4 Step 5
+  .easypar NRPN 12 372 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 46 ;Seq 2/4 Step 6
+  .easypar NRPN 12 373 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 47 ;Seq 2/4 Step 7
+  .easypar NRPN 12 374 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 48 ;Seq 2/4 Step 8
+  .easypar NRPN 12 375 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 49 ;Seq 2/4 Step 9
+  .easypar NRPN 12 376 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 50 ;Seq 2/4 Step 10
+  .easypar NRPN 12 377 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 51 ;Seq 2/4 Step 11
+  .easypar NRPN 12 378 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 52 ;Seq 2/4 Step 12
+  .easypar NRPN 12 379 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 8
+$encoder 53 ;Seq 2/4 Step 13
+  .easypar NRPN 12 380 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 54 ;Seq 2/4 Step 14
+  .easypar NRPN 12 381 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 55 ;Seq 2/4 Step 15
+  .easypar NRPN 12 382 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$encoder 56 ;Seq 2/4 Step 16
+  .easypar NRPN 12 383 0 126 absolute/14
+  .showvalue on
+  .mode 1dot
+  .resolution 10 50 100 500
+  .default 0
+$button 33 ;Seq 1/3 Dest up
+  .showvalue on
+  .default 0
+  .mode incval 1
+  .minmax 0 47
+  .tx $BB $63 $02
+  .tx $BB $62 $17
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 34 ;Seq 2/4 Dest up
+  .showvalue on
+  .default 0
+  .mode incval 1
+  .minmax 0 48
+  .tx $BB $63 $02
+  .tx $BB $62 $18
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 41 ;Seq 1/3 Dest down
+  .showvalue on
+  .default 0
+  .mode incval -1
+  .minmax 0 47
+  .tx $BB $63 $02
+  .tx $BB $62 $17
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$button 42 ;Seq 2/4 Dest down
+  .showvalue on
+  .default 0
+  .mode incval -1
+  .minmax 0 48
+  .tx $BB $63 $02
+  .tx $BB $62 $18
+  .tx $BB $06 $00
+  .tx $BB $26 val
+$end

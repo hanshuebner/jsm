@@ -22,3 +22,9 @@
 [submodule "lib/node-pashua"]
 	path = lib/node-pashua
 	url = git@github.com:hanshuebner/node-pashua.git
+[submodule "lib/node-hid"]
+	path = lib/node-hid
+	url = git@github.com:hanshuebner/node-hid
+[submodule "LiveOSC"]
+	path = LiveOSC
+	url = git@github.com:hanshuebner/LiveOSC.git

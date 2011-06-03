@@ -1,0 +1,75 @@
+Controlling a desktop Synth
+
+Bought a desktop analog synth
+Disappointed by the user interface, 8 knobs, 1000 parameters
+Wanted to hook up a MIDI knobs box
+How to get the current values onto the encoder LEDs?
+Intermediary program needed
+
+
+Adding an intermediary program
+
+Write something in Java, or C++, or another general purpose language
+Use a music programming environment like Puredata, CMusic or MaxMSP
+Use JavaScript
+
+
+Options for MIDI and JavaScript
+
+In the browser, using an Applet to do the actual MIDI I/O, works well except for the browser part and MacOS issues
+Using Rhino, should work as well, but all the Java bloat kind of puts me off, and the MacOS issues remain
+Using Node and a native extension, way to go
+
+
+Writing Node extensions
+
+Enjoyable, modern C++
+Documentation is scarce
+Attach C++ functions to objects
+Create JavaScript objects from C++
+Attach hidden "this" pointer to objects
+Access hidden "this" pointer in C++ functions
+
+
+Accessing MIDI
+
+MIDI API not standardized across platforms
+Multimedia APIs galore - MME, DirectX, ALSA, CoreMIDI
+portmidi to the rescue, for MacOS, Linux, Windows
+C API, stable, tested, documented
+
+
+Making it asynchronous
+
+portmidi has private timer/callback system
+This needs to be adapted to libev
+libev documentation is hard to find
+Used Boost mutex / semaphore to block in libev worker
+
+
+Extending a native extension
+
+Objects created by native code are just plain JS objects
+Only the base functionality is implemented in C++ (open/send/receive/close)
+All higher-level functionality is written in JavaScript and attached to the relevant prototypes
+For performance reasons, more stuff might be implemented in C++
+
+
+Node and real-time
+
+Garbage collection can require arbitary time
+Collection time depends on the number of objects created
+Measured response time jitter below 20ms
+Performance is good enough for control
+portmidi latency compensation and playout queueing can be used for better output accuracy
+
+
+Future plans
+
+Performance improvements (maybe)
+Implement sequencer
+Binary distribution
+Windows, Linux ports
+
+
+Demo / Questions
