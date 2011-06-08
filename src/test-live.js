@@ -8,9 +8,9 @@ live.send('/live/tempo', 120);
 live.send('/live/tempo', 121);
 live.send('/remix/reconfigure', '', 9001);
 live.send('/remix/echo', 'hello');
-live.send('/remix/reconfigure', '192.168.5.1', 9090);
+live.send('/remix/set_peer', '192.168.5.1', 9090);
 live.send('/remix/echo', 'nix is');
-live.send('/remix/reconfigure', '', 9001);
+live.send('/remix/set_peer', '', 9001);
 live.send('/remix/echo', 'hello hello');
 
 var repl = require('repl');
