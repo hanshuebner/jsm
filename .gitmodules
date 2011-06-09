@@ -28,3 +28,6 @@
 [submodule "web/tetra-web"]
 	path = web/tetra-web
 	url = git@github.com:hanshuebner/tetra-web
+[submodule "lib/music.js"]
+	path = lib/music.js
+	url = https://github.com/GregJ/music.js
