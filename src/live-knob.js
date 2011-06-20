@@ -2,7 +2,9 @@ var util = require('util');
 var events = require('events');
 
 var MIDI = require('MIDI');
-var powerMate = require('powermate').powerMate;
+var PowerMate = require('powermate');
+
+var powerMate = new PowerMate.PowerMate();
 powerMate.setLed(0);
 
 var Ableton = require('./live.js');
