@@ -31,3 +31,6 @@
 [submodule "lib/music.js"]
 	path = lib/music.js
 	url = https://github.com/GregJ/music.js
+[submodule "lib/Audiolet"]
+	path = lib/Audiolet
+	url = https://github.com/oampo/Audiolet.git
