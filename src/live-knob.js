@@ -14,6 +14,7 @@ var midiInput = new MIDI.MIDIInput();
 console.log("opened MIDI input port", midiInput.portName);
 
 // Handle incoming MIDI clock ticks by displaying a visual metronome.
+
 var count = -1;
 var ledPeriod = 0;
 var lastMidiBeat = (new Date).getTime();
@@ -22,9 +23,10 @@ midiInput.on('timingClock', function () {
     // Raw MIDI clock pulses are generated on every 96th note.
     count++;
     if (count % 24 == 0) {
-        delta = (new Date).getTime() - lastMidiBeat;
-        lastMidiBeat = (new Date).getTime();
-        console.log(delta, 'beat/midi');
+        var now = (new Date).getTime();
+        delta = now - lastMidiBeat;
+        lastMidiBeat = now;
+//        console.log(delta, 'beat/midi');
         // Got a quarter note
         brightness = 255;
         powerMate.setLed(brightness);
@@ -50,34 +52,87 @@ midiInput.on('timingClock', function () {
     }
 });
 
-// Names of the tracks
+// Names of the tracks in the current live set
 var tracks = [];
 
 // TrackArmer - Click records a clip, turning arms another track
+
 function TrackArmer()
 {
     events.EventEmitter.call(this);
 
-    this.on('click', function () {
-        console.log('record clip');
-    });
-    this.currentTrack = 0;
+    this.selectTrack(0);
+
     this.on('clickTurn', function (delta) {
-        live.send('/live/arm', that.currentTrack, 2);
-        that.currentTrack += delta;
-        that.currentTrack = Math.max(0, Math.min(tracks.length - 1, that.currentTrack));
-        console.log('track', that.currentTrack);
-        live.send('/live/track/view', that.currentTrack);
-        live.send('/live/arm', that.currentTrack, 1);
-    });
-    var that = this;
+        // determine next selected track
+        var nextTrack = Math.max(0, Math.min(tracks.length - 1, this.currentTrack + delta));
+        if (nextTrack != this.currentTrack) {
+            this.selectTrack(nextTrack);
+        }
+    }.bind(this));
+
     live.on('/live/track', function (trackIndex) {
         trackIndex -= 1;
-        that.currentTrack = trackIndex;
-    });
+        this.currentTrack = trackIndex;
+    }.bind(this));
+
+    live.on('/live/track/info', function (trackNumber) {
+        if (trackNumber == this.currentTrack) {
+            for (var i = 2; i < arguments.length; i += 3) {
+                var clipNumber = arguments[i];
+                var state = arguments[i+1];
+                this.clips[clipNumber] = state;
+            }
+        }
+    }.bind(this));
+
+    // Clip recording quantized to global quantization.  The first
+    // free clip in the currently selected track is recorded to.  As
+    // the currently selected track is always armed (see the clickTurn
+    // handler), the /live/play/clipslot message sent to live actually
+    // starts recording, not playing, at the start of the next bar.
+    // As soon as that bar starts, Live creates the clip and sends a
+    // /live/name/clip message which is handled below.
+    this.on('click', function () {
+        console.log('record clip, clips', this.clips);
+        var emptyClip = 0;
+        while (this.clips[emptyClip]) {
+            emptyClip++;
+        }
+        live.send('/live/play/clipslot', this.currentTrack, emptyClip);
+        this.recordingClip = emptyClip;
+    }.bind(this));
+
+    // If we receive a /live/name/clip message for the clip that we're
+    // currently recording to, stop that clip (at the beginning of the
+    // next bar).
+    live.on('/live/name/clip', function(trackNumber, clipNumber, name, color) {
+        if (trackNumber == this.currentTrack && clipNumber == this.recordingClip) {
+            live.send('/live/stop/clip', trackNumber, clipNumber);
+        }
+    }.bind(this));
 }
 
 util.inherits(TrackArmer, events.EventEmitter);
+
+TrackArmer.prototype.selectTrack = function (nextTrack)
+{
+    // unarm current track
+    if (this.currentTrack != undefined) {
+        live.send('/live/arm', this.currentTrack, 2);
+    }
+    this.currentTrack = nextTrack
+    this.clips = [];
+    console.log('track', this.currentTrack);
+    // select current track
+    live.send('/live/track/view', this.currentTrack);
+    // inquire track state
+    live.send('/live/track/info', this.currentTrack);
+    // .. and arm it
+    live.send('/live/arm', this.currentTrack, 1);
+}
+
+// PowerMate knob handling logic
 
 var powerMateHandlers = [ new TrackArmer() ];
 var handlerIndex = 0;
@@ -107,6 +162,13 @@ live.on('/live/play', function (playing) {
     }
 });
 
+// forward received bundles as individual messsage
+live.on('#bundle', function (time) {
+    for (var i = 1; i < arguments.length; i++) {
+        this.emit.apply(this, arguments[i]);
+    }
+});
+
 live.on('/live/refresh', function () {
     tracks = [];
 });
@@ -115,10 +177,5 @@ live.on('/live/name/track', function (index, name) {
     tracks[index] = name;
 });
 
-// forward received bundles as individual messsage
-live.on('#bundle', function (time) {
-    for (var i = 1; i < arguments.length; i++) {
-        this.emit.apply(this, arguments[i]);
-    }
-});
+// Make live send its current track configuration
 live.send('/live/name/track');
