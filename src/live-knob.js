@@ -3,9 +3,18 @@ var events = require('events');
 
 var MIDI = require('MIDI');
 var PowerMate = require('powermate');
+var Buzzers = require('buzzers');
 
 var powerMate = new PowerMate.PowerMate();
 powerMate.setLed(0);
+
+var buzzers;
+try {
+    buzzers = new Buzzers.BuzzerController();
+}
+catch (e) {
+    console.log('no buzzers');
+}
 
 var Ableton = require('./live.js');
 var live = new Ableton.Live('localhost');
@@ -30,6 +39,12 @@ midiInput.on('timingClock', function () {
         // Got a quarter note
         brightness = 255;
         powerMate.setLed(brightness);
+        if (buzzers) {
+            buzzers.led(0, true);
+            buzzers.led(1, true);
+            buzzers.led(2, true);
+            buzzers.led(3, true);
+        }
         if (count % 96 == 0) {
             // one - long period
             ledPeriod = 12;
@@ -48,6 +63,12 @@ midiInput.on('timingClock', function () {
                 brightness = 0;
             }
             powerMate.setLed(brightness);
+            if (buzzers) {
+                buzzers.led(0, false);
+                buzzers.led(1, false);
+                buzzers.led(2, false);
+                buzzers.led(3, false);
+            }
         }
     }
 });
